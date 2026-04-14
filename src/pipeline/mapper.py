@@ -1,6 +1,7 @@
 # src/pipeline/mapper.py
 from __future__ import annotations
 
+import logging
 import re
 from dataclasses import dataclass
 from typing import Dict, List, Optional, Tuple
@@ -9,6 +10,8 @@ import numpy as np
 import pandas as pd
 
 from src.pipeline.schema import SYNONYMS_META, SYNONYMS_TS
+
+logger = logging.getLogger(__name__)
 
 
 def _normalize_name(s: str) -> str:
@@ -298,19 +301,19 @@ def build_rename_map(
 
             # show candidates clearly (not misleading global top list)
             if verbose:
-                print("\n[Mapper] Value-hint candidates (top 3 per field):")
+                logger.info("\n[Mapper] Value-hint candidates (top 3 per field):")
             for field in CANON_TS_REQUIRED:
                 ...
 
             for field in CANON_TS_REQUIRED:
                 best = [s for s in scores if s.field == field and s.score > 0][:3]
                 for s in best:
-                    print(f"  - {field:20s} <- {s.column:22s} score={s.score:.3f}")
+                    logger.info(f"  - {field:20s} <- {s.column:22s} score={s.score:.3f}")
 
-            print("\n[Mapper] Value-hint chosen mapping (only for missing fields):")
+            logger.info("\n[Mapper] Value-hint chosen mapping (only for missing fields):")
             for field in missing:
                 if field in hinted:
-                    print(f"  - {field:20s} <- {hinted[field]}")
+                    logger.info(f"  - {field:20s} <- {hinted[field]}")
 
             # apply only missing fields, never override synonym matches
             for canon_field in missing:
@@ -325,17 +328,17 @@ def build_rename_map(
     unknown = [c for c in raw_cols if c not in used_raw]
     if unknown and interactive:
         allowed = set(synonyms.keys())
-        print(f"\n[Mapper] Unmapped columns detected ({kind}):")
+        logger.info(f"\n[Mapper] Unmapped columns detected ({kind}):")
         for c in unknown:
-            print(f" - {c}")
-        print("\nMap them to a CANONICAL name, or press ENTER to skip.")
-        print(f"Allowed canonical names: {sorted(allowed)}")
+            logger.info(f" - {c}")
+        logger.info("\nMap them to a CANONICAL name, or press ENTER to skip.")
+        logger.info(f"Allowed canonical names: {sorted(allowed)}")
 
         for c in unknown:
             ans = input(f"Map '{c}' -> ").strip()
             if ans:
                 if ans not in allowed:
-                    print(f"[Mapper] Rejected: '{ans}' is not a known canonical column. Skipping.")
+                    logger.info(f"[Mapper] Rejected: '{ans}' is not a known canonical column. Skipping.")
                     continue
                 rename[c] = ans
                 used_raw.add(c)

@@ -1,0 +1,29 @@
+{
+  "feature_columns": [
+    "capacity",
+    "cycle_index",
+    "temp_mean",
+    "temp_max",
+    "v_mean",
+    "i_mean",
+    "i_min",
+    "energy_j",
+    "ah_est",
+    "duration_s"
+  ],
+  "feature_importance": {
+    "capacity": 0.03151598572731018,
+    "cycle_index": 0.11330430954694748,
+    "temp_mean": 0.09848789125680923,
+    "temp_max": 0.12618069350719452,
+    "v_mean": 0.16574569046497345,
+    "i_mean": 0.10927969962358475,
+    "i_min": 0.07512978464365005,
+    "energy_j": 0.13246068358421326,
+    "ah_est": 0.03627988323569298,
+    "duration_s": 0.11161548644304276
+  },
+  "has_lower": true,
+  "has_upper": true,
+  "_use_ensemble_variance": false
+}

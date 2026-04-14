@@ -3,6 +3,8 @@ from __future__ import annotations
 import pandas as pd
 import numpy as np
 
+from src.config import get_config
+
 def build_cycle_table_from_metadata(meta: pd.DataFrame) -> pd.DataFrame:
     """
     Build per-cycle discharge table from metadata.
@@ -46,11 +48,13 @@ def build_cycle_table_from_metadata(meta: pd.DataFrame) -> pd.DataFrame:
     return df[["battery_id", "cycle_index", "filename", "capacity"]].copy()
 
 
-def add_rul(cycle_table: pd.DataFrame, alpha: float = 0.7) -> pd.DataFrame:
+def add_rul(cycle_table: pd.DataFrame, alpha: float | None = None) -> pd.DataFrame:
     """
     EOL threshold = alpha * initial capacity
     RUL(cycle) = max(eol_cycle - cycle_index, 0)
     """
+    if alpha is None:
+        alpha = float(get_config().eol.capacity_fade_fraction)
 
     df = cycle_table.copy()
     df["capacity"] = pd.to_numeric(df["capacity"], errors="coerce")
@@ -89,4 +93,5 @@ def add_rul(cycle_table: pd.DataFrame, alpha: float = 0.7) -> pd.DataFrame:
         g["RUL"] = (eol_cycle - g["cycle_index"]).clip(lower=0).astype(int)
         return g
 
-    return df.groupby("battery_id", group_keys=False).apply(per_battery)
+    groups = [per_battery(g) for _, g in df.groupby("battery_id", sort=False)]
+    return pd.concat(groups, axis=0) if groups else df.copy()

@@ -5,6 +5,8 @@ from typing import Dict, List, Optional, Tuple
 import numpy as np
 import pandas as pd
 
+from src.config import get_config
+
 
 @dataclass
 class ValidationReport:
@@ -50,6 +52,7 @@ def validate_timeseries(
 
     issues: List[str] = []
     metrics: Dict[str, float] = {}
+    cfg = get_config()
 
     # 1) Required columns present
     missing = [c for c in required_cols if c not in df_ts.columns]
@@ -82,7 +85,7 @@ def validate_timeseries(
         structure_ok = False
         issues.append(f"Missing time column '{time_col}'")
 
-    # 4) Physics range checks (broad, dataset-agnostic)
+    # 4) Physics range checks (config-driven)
     physics_ok = True
 
     def range_check(col: str, lo: float, hi: float, name: str):
@@ -101,16 +104,34 @@ def validate_timeseries(
             physics_ok = False
             issues.append(f"{name} outside expected range in '{col}': min={mn:.3f} max={mx:.3f} expected [{lo},{hi}]")
 
-    # voltage typically ~[2, 5.5]
+    s = cfg.schema
+    # Voltage
     for vc in voltage_cols:
-        range_check(vc, 1.5, 6.0, "Voltage")
+        range_check(vc, float(s.voltage_v.min), float(s.voltage_v.max), "Voltage")
 
-    # current can be wider; keep broad
+    # Current magnitude (supports signed charge/discharge streams)
     for cc in current_cols:
-        range_check(cc, -10.0, 10.0, "Current")
+        if cc not in df_ts.columns:
+            continue
+        x = pd.to_numeric(df_ts[cc], errors="coerce").dropna().to_numpy()
+        if len(x) == 0:
+            physics_ok = False
+            issues.append(f"Current column '{cc}' has no numeric values")
+            continue
+        x_abs = np.abs(x)
+        mn, mx = float(np.min(x_abs)), float(np.max(x_abs))
+        metrics[f"{cc}_abs_min"] = mn
+        metrics[f"{cc}_abs_max"] = mx
+        if mn < float(s.current_a.min) or mx > float(s.current_a.max):
+            physics_ok = False
+            issues.append(
+                f"Current magnitude outside expected range in '{cc}': "
+                f"abs_min={mn:.3f} abs_max={mx:.3f} "
+                f"expected [{s.current_a.min},{s.current_a.max}]"
+            )
 
-    # temperature broad
-    range_check(temp_col, -20.0, 150.0, "Temperature")
+    # Temperature
+    range_check(temp_col, float(s.temperature_c.min), float(s.temperature_c.max), "Temperature")
 
     return ValidationReport(
         schema_ok=schema_ok,

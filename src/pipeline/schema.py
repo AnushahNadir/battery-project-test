@@ -6,6 +6,12 @@ Canonical schema + synonym dictionary.
 - Values are raw column name variants (case/spacing differences, abbreviations, etc.)
 """
 
+from __future__ import annotations
+
+from typing import Dict
+
+from src.config import get_config
+
 SYNONYMS_META = {
     "battery_id": ["battery_id", "Battery", "battery", "cell_id"],
     "type": ["type", "step_type", "mode"],
@@ -27,3 +33,18 @@ SYNONYMS_TS = {
     "current_load": ["Current_load", "current_load", "I_load"],
     "voltage_load": ["Voltage_load", "voltage_load", "V_load"],
 }
+
+
+def get_schema_ranges() -> Dict[str, Dict[str, float]]:
+    """
+    Return validated physical ranges from config.
+    """
+    s = get_config().schema
+    return {
+        "capacity_ahr": {"min": float(s.capacity_ahr.min), "max": float(s.capacity_ahr.max)},
+        "temperature_c": {"min": float(s.temperature_c.min), "max": float(s.temperature_c.max)},
+        "voltage_v": {"min": float(s.voltage_v.min), "max": float(s.voltage_v.max)},
+        "current_a": {"min": float(s.current_a.min), "max": float(s.current_a.max)},
+        "energy_j": {"min": float(s.energy_j.min), "max": float(s.energy_j.max)},
+        "duration_s": {"min": float(s.duration_s.min), "max": float(s.duration_s.max)},
+    }

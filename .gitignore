@@ -236,3 +236,10 @@ data/processed/
 __pycache__/
 .venv/
 *.pyc
+
+# Trained model binaries (pickle is version-dependent and unsafe)
+trained_models/*.pkl
+# Keep JSON configs and native XGBoost model files (trained_models/xgboost_model/)
+
+# Release zip snapshots (large binaries — share via GitHub Releases instead)
+releases/*.zip

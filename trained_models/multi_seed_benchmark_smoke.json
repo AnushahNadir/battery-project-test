@@ -1,0 +1,162 @@
+{
+  "config": {
+    "data_path": "data\\processed\\cycle_features_with_rul.csv",
+    "seeds": [
+      42,
+      7
+    ],
+    "train_ratio": 0.8,
+    "capacity_floor_factor": 0.5,
+    "include_dl": false,
+    "dl": {
+      "epochs": 60,
+      "patience": 10,
+      "hidden_channels": 32,
+      "sequence_length": 8,
+      "batch_size": 64,
+      "learning_rate": 0.001,
+      "dropout": 0.1,
+      "weight_decay": 1e-05,
+      "backend": "auto"
+    }
+  },
+  "runs": [
+    {
+      "seed": 42,
+      "train_batteries": [
+        "B0005",
+        "B0006",
+        "B0007",
+        "B0018",
+        "B0025",
+        "B0026",
+        "B0027",
+        "B0028",
+        "B0029",
+        "B0031",
+        "B0032",
+        "B0034",
+        "B0038",
+        "B0039",
+        "B0040",
+        "B0042",
+        "B0043",
+        "B0045",
+        "B0046",
+        "B0047",
+        "B0048",
+        "B0049",
+        "B0050",
+        "B0051",
+        "B0053",
+        "B0054",
+        "B0055",
+        "B0056"
+      ],
+      "test_batteries": [
+        "B0030",
+        "B0033",
+        "B0036",
+        "B0041",
+        "B0044",
+        "B0052"
+      ],
+      "train_temp_mix": {
+        "room": 9,
+        "hot": 6,
+        "cold": 13
+      },
+      "test_temp_mix": {
+        "room": 2,
+        "hot": 1,
+        "cold": 3
+      },
+      "train_rows_raw": 2156,
+      "train_rows_clean": 2143,
+      "test_rows": 638,
+      "train_rows_removed": 13,
+      "test_rows_flagged": 0,
+      "stat_rmse": 478.5009913501065,
+      "stat_mae": 323.325042116724,
+      "xgb_rmse": 37.63777001321601,
+      "xgb_mae": 28.018166672169787
+    },
+    {
+      "seed": 7,
+      "train_batteries": [
+        "B0006",
+        "B0007",
+        "B0018",
+        "B0025",
+        "B0026",
+        "B0027",
+        "B0028",
+        "B0029",
+        "B0030",
+        "B0031",
+        "B0033",
+        "B0036",
+        "B0038",
+        "B0039",
+        "B0040",
+        "B0041",
+        "B0042",
+        "B0044",
+        "B0045",
+        "B0046",
+        "B0048",
+        "B0049",
+        "B0050",
+        "B0052",
+        "B0053",
+        "B0054",
+        "B0055",
+        "B0056"
+      ],
+      "test_batteries": [
+        "B0005",
+        "B0032",
+        "B0034",
+        "B0043",
+        "B0047",
+        "B0051"
+      ],
+      "train_temp_mix": {
+        "room": 9,
+        "hot": 6,
+        "cold": 13
+      },
+      "test_temp_mix": {
+        "room": 2,
+        "hot": 1,
+        "cold": 3
+      },
+      "train_rows_raw": 2180,
+      "train_rows_clean": 2168,
+      "test_rows": 614,
+      "train_rows_removed": 12,
+      "test_rows_flagged": 1,
+      "stat_rmse": 545.7755189418591,
+      "stat_mae": 242.7159973557521,
+      "xgb_rmse": 47.01983436516175,
+      "xgb_mae": 28.161974731661342
+    }
+  ],
+  "summary": {
+    "statistical_rmse": {
+      "n": 2,
+      "mean": 512.1382551459828,
+      "std": 33.637263795876294,
+      "min": 478.5009913501065,
+      "max": 545.7755189418591
+    },
+    "xgboost_rmse": {
+      "n": 2,
+      "mean": 42.32880218918888,
+      "std": 4.691032175972868,
+      "min": 37.63777001321601,
+      "max": 47.01983436516175
+    }
+  },
+  "errors": []
+}

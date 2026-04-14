@@ -10,7 +10,9 @@ from src.pipeline.data_loader import load_metadata, save_csv
 from src.pipeline.mapper import build_rename_map, standardize_columns
 from src.pipeline.validation import validate_timeseries
 from src.pipeline.confidence import compute_confidence
+from src.pipeline.drift import DriftMonitor
 from src.pipeline.errors import DatasetRejectedError
+from src.config import get_config
 
 from src.analysis.rul import build_cycle_table_from_metadata, add_rul
 from src.analysis.degradation_features import build_timeseries_features
@@ -26,8 +28,9 @@ REQUIRED_TS = [
     "voltage_load",
 ]
 
-LOW_THRESHOLD = 0.60
-REVIEW_THRESHOLD = 0.85
+_CFG = get_config()
+LOW_THRESHOLD = float(_CFG.gating.low_threshold)
+REVIEW_THRESHOLD = float(_CFG.gating.review_threshold)
 
 
 def run(
@@ -95,6 +98,7 @@ def run(
         schema_match_ratio=schema_match_ratio,
         pattern_agreement_ratio=pattern_agreement_ratio,
         validation=validation,
+        imputation_fraction=float(validation.metrics.get("missing_ratio_required", 0.0)),
     )
 
     (out_dir / "validation_report.json").write_text(json.dumps(validation.to_dict(), indent=2), encoding="utf-8")
@@ -145,6 +149,38 @@ def run(
         "columns": list(merged.columns),
         "rul_missing": int(merged["RUL"].isna().sum()) if "RUL" in merged.columns else None,
     }
+
+    # Optional drift check against trained reference distributions.
+    # This activates automatically when trained_models/feature_distributions.json exists.
+    drift_info: dict[str, object]
+    try:
+        base_dir = Path(__file__).resolve().parents[2]
+        ref_path = base_dir / _CFG.paths.trained_models / "feature_distributions.json"
+        if ref_path.exists():
+            monitor = DriftMonitor.load(ref_path)
+            drift_report = monitor.compute(merged, label="incoming_batch")
+            drift_path = out_dir / "drift_report.json"
+            drift_path.write_text(json.dumps(drift_report.to_dict(), indent=2), encoding="utf-8")
+            drift_info = {
+                "status": "OK",
+                "reference_path": str(ref_path),
+                "report_path": str(drift_path),
+                "overall_status": drift_report.overall_status,
+                "n_alerts": len(drift_report.alerts),
+                "alerts": drift_report.alerts,
+            }
+        else:
+            drift_info = {
+                "status": "SKIPPED",
+                "reason": f"reference distribution not found at {ref_path}",
+            }
+    except Exception as exc:
+        drift_info = {
+            "status": "ERROR",
+            "error": f"{type(exc).__name__}: {exc}",
+        }
+    qc["drift"] = drift_info
+
     (out_dir / "qc_report.json").write_text(json.dumps(qc, indent=2), encoding="utf-8")
 
     return {

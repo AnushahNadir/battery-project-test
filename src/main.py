@@ -2,9 +2,13 @@
 from __future__ import annotations
 
 import argparse
+import logging
 from pathlib import Path
 
+from src.log import setup_logging
 from src.pipeline.run_analysis import run
+
+logger = logging.getLogger(__name__)
 
 
 def _existing_file(p: str) -> str:
@@ -67,6 +71,8 @@ def main() -> None:
 
     args = ap.parse_args()
 
+    setup_logging(output_dir=Path(args.out_dir))
+
     outputs = run(
         metadata_path=args.metadata,
         raw_root=args.raw_root,
@@ -75,9 +81,9 @@ def main() -> None:
         non_interactive=args.non_interactive,
     )
 
-    print("\n✅ Done. Outputs:")
+    logger.info("Done. Outputs:")
     for k, v in outputs.items():
-        print(f"- {k}: {v}")
+        logger.info("  %s: %s", k, v)
 
 
 if __name__ == "__main__":

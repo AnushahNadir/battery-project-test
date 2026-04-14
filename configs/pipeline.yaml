@@ -1,0 +1,118 @@
+# Single source of truth for all pipeline thresholds, hyperparameters,
+# and schema rules. Every magic number in the codebase lives here.
+#
+# Change values here — not in source files.
+
+split:
+  train_ratio: 0.80
+  random_seed: 42
+  n_cal_batteries: 6
+  stratify_by: temperature_group
+
+dl_model:
+  sequence_length: 8
+  hidden_channels: 32
+  learning_rate: 0.001
+  batch_size: 64
+  epochs: 60
+  patience: 10
+  dropout: 0.10
+  weight_decay: 0.00001
+  force_backend: auto
+
+xgboost:
+  n_estimators: 400
+  max_depth: 6
+  learning_rate: 0.05
+  subsample: 0.8
+  colsample_bytree: 0.8
+  random_state: 42
+  quantile_alphas: [0.05, 0.50, 0.95]
+
+conformal:
+  coverage: 0.90
+  min_cal_batteries: 2
+  safety_factor: 1.20
+  lobo_groups:
+    - cold
+
+uncertainty:
+  q_low: 0.05
+  q_high: 0.95
+  min_sigma: 1.0
+
+risk:
+  horizon_cycles: 20
+  high_threshold: 0.70
+  medium_threshold: 0.30
+
+drift:
+  psi_amber_threshold: 0.10
+  psi_red_threshold: 0.20
+  n_bins: 10
+
+schema:
+  capacity_ahr:
+    min: 1.0
+    max: 2.0
+  temperature_c:
+    min: 4.0
+    max: 44.0
+  voltage_v:
+    min: 2.0
+    max: 4.2
+  current_a:
+    min: 0.5
+    max: 4.0
+  energy_j:
+    min: 5000
+    max: 30000
+  duration_s:
+    min: 1000
+    max: 7000
+
+eol:
+  nominal_capacity_ahr: 2.0
+  capacity_fade_fraction: 0.80
+
+anomaly:
+  capacity_floor_factor: 0.50
+  flagged_battery_prefixes:
+    - B0049
+    - B0050
+    - B0051
+    - B0052
+    - B0053
+    - B0054
+    - B0055
+    - B0056
+
+survival:
+  horizon_cycles: 20
+  method: kaplan_meier
+
+hostile:
+  low_conf_threshold: 0.50
+  high_conf_threshold: 0.75
+
+gating:
+  low_threshold: 0.60
+  review_threshold: 0.85
+
+schema_inspector:
+  low_threshold: 0.60
+  review_threshold: 0.85
+  required_evidence_score: 0.70
+
+supervisor:
+  low_confidence_accept_threshold: 0.70
+  rmse_pass_threshold: 100.0
+  cv_rmse_ratio_warn_threshold: 1.5
+
+paths:
+  raw_data: data/raw
+  processed_data: data/processed
+  trained_models: trained_models
+  outputs: outputs
+  hostile_timeseries: data/raw/hostile/timeseries
+  hostile_output: data/processed/hostile_validation

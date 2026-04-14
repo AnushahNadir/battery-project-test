@@ -1,0 +1,332 @@
+{
+  "created_at": "2026-02-18T01:29:24.877959",
+  "snapshot_zip": "releases/snapshot_20260218_012924.zip",
+  "file_count": 65,
+  "files": [
+    {
+      "path": ".github/workflows/notebook-smoke.yml",
+      "size": 589,
+      "sha256": "9e09c40fd777c0997f06c1d13f0ba44d7acb07fb405a0dfc2fa5ea59e735cba7"
+    },
+    {
+      "path": "battery_analysis.ipynb",
+      "size": 7589,
+      "sha256": "5bf26bd48a366b106f235cc483729db6138fff6ffb8a27951e87cdf7e6cbe722"
+    },
+    {
+      "path": "dashboard/app.py",
+      "size": 5472,
+      "sha256": "176abce66d9d5fcc84e2d26c69f602537b00556d99189ae2c06929659ba9db7f"
+    },
+    {
+      "path": "data/processed/modeling/anomalies.json",
+      "size": 5751,
+      "sha256": "3d96fc623e8523e4fcc4498445f9b65515a6f50097a0e25cfc8a16c1b6c41a7b"
+    },
+    {
+      "path": "data/processed/modeling/counterfactual_examples.json",
+      "size": 411,
+      "sha256": "14fc495b8a21e088288e15daff6428bf77714f683094a795d1f04ad9f406ad1b"
+    },
+    {
+      "path": "data/processed/modeling/degradation_hypotheses.json",
+      "size": 3155,
+      "sha256": "0b40795d58572212a7dbf62282e2d7f6b8dd57be4dd547c53066254589eaf228"
+    },
+    {
+      "path": "data/processed/modeling/feature_importance.json",
+      "size": 1100,
+      "sha256": "c92bfc6f2a08bb7f65abff4e2304fe28fbae26476a96d93716994d30092f6cdb"
+    },
+    {
+      "path": "data/processed/modeling/final_system_report.md",
+      "size": 1424,
+      "sha256": "c4a4d815af5223cd882266a274057dbcbe9b386ce77013e744131bbcec9dff6a"
+    },
+    {
+      "path": "data/processed/modeling/survival_risk_metrics.json",
+      "size": 169,
+      "sha256": "ec29bdae1de54f827f7ae39e300a028618907eb69e84125d587825783b13a9b1"
+    },
+    {
+      "path": "data/processed/modeling/survival_risk_model.json",
+      "size": 1492,
+      "sha256": "f36ecae4d60a8d9ffbb3af30b9876a54061619cf24ad7e346ec9268255d60dcd"
+    },
+    {
+      "path": "data/processed/modeling/survival_risk_predictions.csv",
+      "size": 30562,
+      "sha256": "b297425176b2c3d7ee73086b235ef34c83cfdafef3936eedc2bac8a68aba2fb3"
+    },
+    {
+      "path": "data/processed/modeling/survival_risk_report.md",
+      "size": 980,
+      "sha256": "6fb366ec7f4591752384821b250169fc42daad5c808ed3bbdd047bdd26e8809d"
+    },
+    {
+      "path": "data/processed/modeling/uncertainty_estimates.json",
+      "size": 173608,
+      "sha256": "c6618b99d45e84e8154fb7e024567a5f543111ba9525818c0b708c07a7b57562"
+    },
+    {
+      "path": "data/processed/modeling/uncertainty_metrics.json",
+      "size": 248,
+      "sha256": "110e6c13b03ea4d3efb44257c209d83226e169c1355bd9b4acda1beb109790d5"
+    },
+    {
+      "path": "README.md",
+      "size": 1338,
+      "sha256": "5ae82f86800b27dfac3f58668b5d962af3bc5ff6dc68e1d70f2ca297ca326680"
+    },
+    {
+      "path": "requirements.txt",
+      "size": 100,
+      "sha256": "4ca730b39fb9f67e63c00c09d7d068993cadc8e359e73fdd1730f695b5bc9329"
+    },
+    {
+      "path": "scripts/check_notebook.py",
+      "size": 1359,
+      "sha256": "b75a64cff997fd43c3984ed1a343b5767f08d43cd918c0bcd527da0037e876cb"
+    },
+    {
+      "path": "scripts/debug_mapper.py",
+      "size": 379,
+      "sha256": "a18742aa9743aeb3d48acfaed7a087c79fdde908e03ae685a2bbcd7e2a50dbcd"
+    },
+    {
+      "path": "src/__init__.py",
+      "size": 36,
+      "sha256": "59360620e51d1f4b0f2d42c3d44cd75fd644ccf18b4106398a296d98b42a7779"
+    },
+    {
+      "path": "src/agents/__init__.py",
+      "size": 195,
+      "sha256": "dcc5a95ac24088914d603e318cd5f2687005979aee63028684394133217e0cc3"
+    },
+    {
+      "path": "src/agents/run_hostile_validation.py",
+      "size": 8683,
+      "sha256": "9091c63f89476c7a8f6994049698bd4d7fe5b98d05239203c5d2e803bf5f20a5"
+    },
+    {
+      "path": "src/agents/schema_inspector.py",
+      "size": 18974,
+      "sha256": "e384acd847364453770dce2b4b509064af42ef2f88bc2c6eaa05f74493f06485"
+    },
+    {
+      "path": "src/agents/semantic_mapper.py",
+      "size": 21269,
+      "sha256": "5667c61fbb072dd30d94c88d797b7f27f2aea53f29e899776d007e0a62de1d51"
+    },
+    {
+      "path": "src/agents/supervisor_critic.py",
+      "size": 30434,
+      "sha256": "958eea7c93aef21742aefc908ce046117ecb526e604e54a8fcc3ca0b3f5a15b2"
+    },
+    {
+      "path": "src/agents/validation_gating.py",
+      "size": 21885,
+      "sha256": "fcd60eff6833811d7096d45b4640894d0d0c22be769dcd6ea64e0518c607a716"
+    },
+    {
+      "path": "src/analysis/__init__.py",
+      "size": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "src/analysis/anomaly_detection.py",
+      "size": 13772,
+      "sha256": "ad0898df7749e93fcdcad9d5d38f568b8f10482e96719268ec4f0395ca60d5dd"
+    },
+    {
+      "path": "src/analysis/degradation_features.py",
+      "size": 6051,
+      "sha256": "f3cc96aea996b896a65e09ab402209c7048ba70ba2002504b788060f4b22a6d4"
+    },
+    {
+      "path": "src/analysis/rul.py",
+      "size": 3083,
+      "sha256": "f90d106d9d386d09cb566b6b79b08bcdec3d017daba31749ed322f13dc9d3fd7"
+    },
+    {
+      "path": "src/analysis/survival_risk.py",
+      "size": 14687,
+      "sha256": "e83125bbedff253e587d9004ba0a6699a292dea50073aaa63ead8be32c23315b"
+    },
+    {
+      "path": "src/explanation/__init__.py",
+      "size": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "src/explanation/evidence_retriever.py",
+      "size": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "src/explanation/explanation_builder.py",
+      "size": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "src/explanation/rag_store.py",
+      "size": 1359,
+      "sha256": "0a74f87906a333e5e164ef89f5af4b93b4ab6f5311efe27c448f8440683d8f11"
+    },
+    {
+      "path": "src/main.py",
+      "size": 2153,
+      "sha256": "c248119edc71c07c0bdac8278b06fb966f47fde1d3a13ca766de36073f7d6a70"
+    },
+    {
+      "path": "src/modeling/__init__.py",
+      "size": 378,
+      "sha256": "458a2b28e2bcf89dc0641e7e344a5333d349e2101b7648943c0d8ff8f8f7a2cc"
+    },
+    {
+      "path": "src/modeling/anomaly_detection.py",
+      "size": 3619,
+      "sha256": "dd62524de55b279cc20efc19a8cb9c95c9e04c8cf8e8ea6d85b3ecc3682b4188"
+    },
+    {
+      "path": "src/modeling/ml_model.py",
+      "size": 11565,
+      "sha256": "706d200d8f5dabb3cae51d722744313b053b215ab449d51cd8a7f522ea3f7f80"
+    },
+    {
+      "path": "src/modeling/reasoning.py",
+      "size": 10916,
+      "sha256": "9c416215969e42f9b0d9939ecc5169e0c2aca9ad012023cd21e9501d463969b6"
+    },
+    {
+      "path": "src/modeling/run_full_pipeline.py",
+      "size": 4706,
+      "sha256": "0eb0d8a7cb9273a488072efab7c7f7db55cc8dbde2bcab2cfd96ba462bac3293"
+    },
+    {
+      "path": "src/modeling/statistical_baseline.py",
+      "size": 13497,
+      "sha256": "99a77ddaf7296f0ea7518cc2008c434c2c236a113dfcfa8b65b67874e805a4fe"
+    },
+    {
+      "path": "src/modeling/supervisor_review.py",
+      "size": 4751,
+      "sha256": "935b99068a328d94b4a68381b7645dcd3ffb8647f7a3eb2e5e4e8e196abb23f1"
+    },
+    {
+      "path": "src/modeling/uncertainty.py",
+      "size": 8664,
+      "sha256": "b61e0ceb943a7c3d45920fe16de40ba5403e2d478f7111b323f4195d90e2a9e8"
+    },
+    {
+      "path": "src/pipeline/__init__.py",
+      "size": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "src/pipeline/confidence.py",
+      "size": 2140,
+      "sha256": "9fa68e98412a89a738409c948b313c2ac979cb265f0cc9bd9de6b4525f0a0695"
+    },
+    {
+      "path": "src/pipeline/data_loader.py",
+      "size": 479,
+      "sha256": "4706a92dd5c5e9e36240dcad0e453ddfa5eeaf5ecff4fc0ef2815b04509716a5"
+    },
+    {
+      "path": "src/pipeline/errors.py",
+      "size": 50,
+      "sha256": "8032e9c7ccbf4e76acccf62d795a8042b9a6d2da27375fc985abb6094f122031"
+    },
+    {
+      "path": "src/pipeline/generate_report.py",
+      "size": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "src/pipeline/mapper.py",
+      "size": 12236,
+      "sha256": "f5b3b44158b2f811e39f066c7b61441b8c85e595895499f9b9b33a3ee70bae35"
+    },
+    {
+      "path": "src/pipeline/run_analysis.py",
+      "size": 6208,
+      "sha256": "e0cd9bc4fa0c9baf6889b618b8d50913ad4a385e8911c30214c5baff4c0b71c4"
+    },
+    {
+      "path": "src/pipeline/schema.py",
+      "size": 1282,
+      "sha256": "03a00634e6869c28d20552ba941bf2625f7a562cbec39bdb36c88017c60b9682"
+    },
+    {
+      "path": "src/pipeline/validation.py",
+      "size": 3897,
+      "sha256": "9359be22d05c1b6f48293d2ca3bc4744a438a1a732402428d839e4d657f13dad"
+    },
+    {
+      "path": "src/supervisor/__init__.py",
+      "size": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "src/supervisor/analysis_planner.py",
+      "size": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "src/supervisor/analysis_rules.py",
+      "size": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "src/verification/__init__.py",
+      "size": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "src/verification/consistency_check.py",
+      "size": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "src/verification/uncertainty_assessment.py",
+      "size": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "tests/test_analysis_outputs.py",
+      "size": 1667,
+      "sha256": "fd47846e3c0dddff42f713fabd0cc538dd4f854df66b68ef62b968fe7b5d718f"
+    },
+    {
+      "path": "tests/test_pipeline_artifacts_integration.py",
+      "size": 1162,
+      "sha256": "703ff7a321fd76b84f98ee3904ddb396e0c9936d8198da2fd91018dc474241ab"
+    },
+    {
+      "path": "tests/test_planner_logic.py",
+      "size": 325,
+      "sha256": "79fe0b659361538384a5fb2978e38f54e332619dbf7efc633e89f741d1e8e04b"
+    },
+    {
+      "path": "tests/test_reproducibility.py",
+      "size": 904,
+      "sha256": "415088fa53dc7e02f2af1550c57b6ff2b6c7a084e89628967d6019b1957b5b68"
+    },
+    {
+      "path": "trained_models/model_metrics.json",
+      "size": 854,
+      "sha256": "166d9fc7455bd3984bb2d3939652a60296cac93e42bd9111c1f97fecba76f60f"
+    },
+    {
+      "path": "trained_models/statistical_baseline.pkl",
+      "size": 3085,
+      "sha256": "c1481187b1d8adc3e5de20c7d8f98264a89a832c58e38422816c096d0440f377"
+    },
+    {
+      "path": "trained_models/xgboost_model.pkl",
+      "size": 899211,
+      "sha256": "6401a799432aef2fee6858f3aa005bf0c04f87dcb0733db7b02d95a846671835"
+    }
+  ]
+}
