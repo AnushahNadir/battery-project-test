@@ -1,0 +1,38 @@
+Survival Analysis for Battery Failure Risk Estimation
+
+SURVIVAL ANALYSIS FRAMEWORK
+Survival analysis models the time-to-event (here: time-to-end-of-life) distribution. It is the appropriate framework for battery risk estimation because it explicitly handles censoring (batteries still operating at the end of the study) and produces interpretable failure probability estimates.
+
+KEY QUANTITIES
+Survival function S(t): probability that a battery survives beyond cycle t without reaching end-of-life. S(t) = P(T > t) where T is the lifetime. S(0) = 1 (all batteries start operational), S(∞) = 0.
+
+Hazard function h(t): instantaneous failure rate at cycle t given survival to that point. h(t) = -d(log S(t))/dt. The hazard represents the conditional probability of failing in the next cycle, given the battery has survived this far.
+
+Cumulative hazard H(t): integral of hazard from 0 to t. S(t) = exp(-H(t)).
+
+Failure probability within horizon: P(fail within next k cycles | survived to cycle t) = 1 - S(t+k)/S(t). This is the operational risk metric for maintenance decisions.
+
+KAPLAN-MEIER ESTIMATOR
+The Kaplan-Meier (KM) estimator is a non-parametric method for the survival function. It makes no distributional assumptions. At each observed failure time, it reduces the survival estimate by the fraction of at-risk batteries that failed: S(t) = product over all failure times <= t of (1 - d_i/n_i), where d_i is failures and n_i is batteries at risk. Advantages: intuitive, assumption-free, can be visualized as a step function. Limitations: does not condition on battery-specific features (does not use capacity, temperature, impedance), treats all batteries as exchangeable within groups.
+
+DISCRETE-TIME HAZARD MODEL
+The discrete-time hazard model extends KM by modeling the hazard as a function of covariates. At each cycle, the probability of failure is modeled as: h(t | x_t) = sigma(x_t^T * beta), where sigma is the sigmoid function and x_t is the feature vector at cycle t. This allows battery-specific risk estimation that adapts as the battery ages. It is fit by logistic regression on cycle-level data where the outcome is 1 if the battery reached end-of-life within the next k cycles, 0 otherwise.
+
+Advantages over KM: personalizes risk to each battery's observed features; can incorporate temperature, capacity trend, impedance. Disadvantages: parametric assumptions about hazard shape; requires sufficient training data to estimate coefficients reliably.
+
+RISK STRATIFICATION THRESHOLDS
+Standard thresholds for operational battery management:
+HIGH risk: failure probability >= 70% within 20 cycles. Immediate inspection recommended.
+MEDIUM risk: failure probability 30-70% within 20 cycles. Schedule maintenance within 10 cycles.
+LOW risk: failure probability < 30% within 20 cycles. Continue normal monitoring.
+
+These thresholds balance false positive cost (unnecessary maintenance) against false negative cost (unexpected failure). In safety-critical applications (aviation, grid storage), HIGH threshold may be lowered to 50%. In cost-sensitive consumer applications, MEDIUM threshold may be raised to 40%.
+
+CONFORMAL PREDICTION INTERVALS FOR SURVIVAL
+The 90% prediction interval for RUL from conformal prediction has a precise interpretation: over the long run, 90% of such intervals will contain the true RUL. This coverage guarantee holds regardless of the model's internal assumptions, provided the calibration and test batteries are exchangeable (from the same distribution). Coverage below 80% indicates model miscalibration; coverage above 98% indicates overly conservative intervals (uninformative).
+
+INTERPRETATION OF SURVIVAL PREDICTIONS
+A survival probability of 0.85 at cycle 200 means: among batteries with similar history (features) at cycle 200, approximately 85% are expected to survive beyond cycle 200. For a battery currently at cycle 180 with failure probability 0.72 within 20 cycles: this battery has about a 28% chance of surviving to cycle 200. Given the 70% HIGH risk threshold, this battery should be flagged for immediate review.
+
+RELATIONSHIP BETWEEN FAILURE PROBABILITY AND RISK
+Failure probability is NOT the same as confidence in the prediction. A battery with failure_prob = 0.72 is HIGH risk, but the model confidence (from conformal calibration) tells you how reliable that 0.72 estimate is. Low model confidence with HIGH risk classification is especially important to flag: the battery may be outside the training distribution, making the risk estimate unreliable.

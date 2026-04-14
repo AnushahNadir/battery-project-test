@@ -548,7 +548,7 @@ def main() -> None:
         "cal_temp_mix": _group_counts(cal_batteries),
         "test_temp_mix": _group_counts(test_batteries),
         "pretrain_filter": {
-            "enabled": True,
+            "enabled": bool(cfg.anomaly.flagged_battery_prefixes),
             "target_battery_prefixes": sorted(cfg.anomaly.flagged_battery_prefixes),
             "capacity_floor_factor": cfg.anomaly.capacity_floor_factor,
             "global_threshold": global_threshold,

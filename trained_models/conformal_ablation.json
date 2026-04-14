@@ -1,0 +1,95 @@
+{
+  "target_coverage": 0.9,
+  "test_batteries": [
+    "B0030",
+    "B0033",
+    "B0036",
+    "B0041",
+    "B0044",
+    "B0052"
+  ],
+  "ml_rmse": 22.0704,
+  "methods": {
+    "Global split": {
+      "target_coverage": 0.9,
+      "overall_empirical_coverage": 0.9718,
+      "q_hat": 59.39,
+      "per_group": {
+        "room": {
+          "n_rows": 394,
+          "empirical_coverage": 0.9975,
+          "q_hat": 59.39,
+          "strategy": "global"
+        },
+        "hot": {
+          "n_rows": 40,
+          "empirical_coverage": 1.0,
+          "q_hat": 59.39,
+          "strategy": "global"
+        },
+        "cold": {
+          "n_rows": 204,
+          "empirical_coverage": 0.9167,
+          "q_hat": 59.39,
+          "strategy": "global"
+        }
+      }
+    },
+    "Stratified split": {
+      "target_coverage": 0.9,
+      "overall_empirical_coverage": 0.9592,
+      "n_test_rows": 638,
+      "per_group": {
+        "room": {
+          "n_rows": 394,
+          "empirical_coverage": 1.0,
+          "q_hat": 70.06,
+          "strategy": "split",
+          "gap_vs_target": 0.1
+        },
+        "hot": {
+          "n_rows": 40,
+          "empirical_coverage": 1.0,
+          "q_hat": 62.9,
+          "strategy": "split",
+          "gap_vs_target": 0.1
+        },
+        "cold": {
+          "n_rows": 204,
+          "empirical_coverage": 0.8725,
+          "q_hat": 53.06,
+          "strategy": "split",
+          "gap_vs_target": -0.0275
+        }
+      }
+    },
+    "Stratified LOBO": {
+      "target_coverage": 0.9,
+      "overall_empirical_coverage": 0.9639,
+      "n_test_rows": 638,
+      "per_group": {
+        "room": {
+          "n_rows": 394,
+          "empirical_coverage": 1.0,
+          "q_hat": 70.06,
+          "strategy": "split",
+          "gap_vs_target": 0.1
+        },
+        "hot": {
+          "n_rows": 40,
+          "empirical_coverage": 1.0,
+          "q_hat": 62.9,
+          "strategy": "split",
+          "gap_vs_target": 0.1
+        },
+        "cold": {
+          "n_rows": 204,
+          "empirical_coverage": 0.8873,
+          "q_hat": 54.07,
+          "strategy": "lobo",
+          "gap_vs_target": -0.0127
+        }
+      }
+    }
+  }
+}

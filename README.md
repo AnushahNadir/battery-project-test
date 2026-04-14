@@ -1,48 +1,66 @@
-# battery-project
+# Battery Project 3
 
-The Main Project Repo
+End-to-end battery analysis pipeline with:
+- Stage 1-2 preprocessing from raw metadata + time-series files
+- Stage 3-6 modeling, uncertainty, anomaly detection, reasoning, and supervisor report
+- A third trajectory-aware sequence model (TCN when PyTorch is available, otherwise sequence-MLP fallback)
+- Notebook visualization and smoke checks
 
+## 1) Setup (PowerShell)
 
+```powershell
+cd D:atteryattery-project3
+python -m venv .venv
+.\.venv\Scripts\Activate.ps1
+pip install -r requirements.txt
+```
 
-\# Battery Degradation Co-Scientist
+## 2) Run preprocessing (Stage 1-2)
 
+```powershell
+python -m src.main `
+  --metadata dataaw\metadata.csv `
+  --raw_root dataaw\data `
+  --out_dir outputsun_001 `
+  --alpha 0.7 `
+  --non_interactive
+```
 
+Expected artifacts in `outputs\run_001`:
+- `cycle_features_with_rul.csv`
+- `validation_report.json`
+- `confidence_report.json`
+- `qc_report.json`
 
-A research-focused, reproducible pipeline for analyzing battery degradation using NASA dataset.
+## 3) Run modeling pipeline (Stage 3-6)
 
+```powershell
+python -m src.modeling.run_full_pipeline
+```
 
+Expected artifacts in `data\processed\modeling`:
+- `uncertainty_estimates.json`
+- `anomalies.json`
+- `feature_importance.json`
+- `degradation_hypotheses.json`
+- `counterfactual_examples.json`
+- `final_system_report.md`
 
-\## What this repo does
+## 4) Validate notebook
 
-\- Loads battery cycling data (time-series)
+```powershell
+python scripts\check_notebook.py battery_analysis.ipynb
+```
 
-\- Runs modular analyses (degradation modeling, anomaly detection, risk estimation)
+## 5) Run tests
 
-\- Verifies consistency and uncertainty before reporting
+```powershell
+python -m unittest discover -s tests -p "test_*.py" -v
+```
 
-\- Produces human-readable explanations grounded in references (RAG-ready)
+## 6) Create release snapshot
 
-
-
-\## What this repo does NOT do (non-claims)
-
-\- Does not control hardware
-
-\- Does not make safety-critical decisions
-
-\- Does not claim real-world safety guarantees
-
-
-
-\## Quick start
-
-```bat
-
-py -3.14 -m venv .venv
-
-.venv\\Scripts\\activate
-
-python -m src.main --help
-
-
+```powershell
+python scripts\make_snapshot.py --tag release_candidate
+```
 

@@ -1,0 +1,44 @@
+NASA CALCE Battery Dataset Reference
+
+DATASET OVERVIEW
+The NASA Prognostics Center of Excellence Battery Dataset and CALCE (Center for Advanced Life Cycle Engineering, University of Maryland) battery datasets are the most widely used public benchmarks for battery RUL prediction research. They contain complete charge-discharge-impedance cycle data for Li-ion 18650 cells tested to end-of-life under controlled laboratory conditions.
+
+EXPERIMENTAL SETUP
+Cell chemistry: Lithium cobalt oxide (LiCoO2) cathode, graphite anode. Nominal capacity: 2.0 Ah (NASA) or 1.1-1.35 Ah (CALCE CS2 series). Form factor: 18650 cylindrical cells. Operating temperature: Room temperature (typically 24°C unless otherwise specified). End-of-life criterion: Capacity reduced to 80% of nominal rated capacity (1.4 Ah for 1.75 Ah nominal cells in the NASA dataset from CALCE source). Some cells use 70% threshold depending on the specific battery group.
+
+CHARGING PROTOCOL
+Constant current (CC) charging at 1.5A until terminal voltage reaches 4.2V, then constant voltage (CV) charging until current drops to 20mA. This CC-CV protocol is standard for LiCoO2 cells and prevents overcharging.
+
+DISCHARGE PROTOCOLS
+Different battery groups use different discharge current rates and cutoff voltages:
+- Batteries 5, 6, 7, 18: 2A discharge to 2.7V cutoff
+- Batteries 25-28: 2A discharge to varying cutoffs
+- Batteries 33, 34: 4A discharge (B33 to 2.0V, B34 to 2.2V)
+- Battery 36: 2A discharge to 2.7V
+- Batteries 38-40: accelerated aging protocols
+- Batteries 41-56: various stress protocols
+Higher discharge current rates (4A vs 2A) accelerate degradation through higher polarization and mechanical stress.
+
+DATA STRUCTURE
+Each battery's data is organized as cycles, where each cycle contains one operational profile (charge, discharge, or impedance). Measurement channels: Voltage_measured, Current_measured, Temperature_measured, Current_charge, Voltage_charge, Time (within cycle). Impedance cycles include frequency sweep data (0.1 Hz to 5 kHz).
+
+CYCLE COUNTS AND LIFETIMES
+Battery lifetimes vary significantly across groups:
+- Standard 2A discharge: 150-300 cycles to end-of-life
+- Accelerated 4A discharge: 100-200 cycles
+- Some batteries reach 500+ cycles under gentle operating conditions
+This variability is the core challenge for RUL prediction: the model must generalize across different degradation rates.
+
+BATTERY B0036 NOTES
+Battery B0036 is discharged at 2A to 2.7V cutoff and charged at 1.5A CC/CV. It shows anomalous early-cycle degradation with higher than expected capacity variance in the first 30-50 cycles, likely due to initial formation cycling artifacts or temperature transients during early testing. The residual spike anomaly pattern (where observed RUL deviates strongly from model-predicted trend) in early cycles is consistent with this initial conditioning behavior, not necessarily indicative of an accelerated failure mode.
+
+KNOWN ANOMALIES IN THE DATASET
+- B0055: Shows unusual impedance growth pattern potentially due to manufacturing defect or test fixture issue. Uncertainty calibration for this battery tends to be overconfident (calibration set statistics do not represent its distribution well). LOBO (leave-one-battery-out) calibration is recommended.
+- Battery groups tested at elevated temperatures (some batteries in the 49-56 range) show faster than typical degradation. Cross-group predictions should be treated with caution.
+- Missing cycles in some batteries due to test equipment interruptions. Downstream models should handle irregular cycle sequences.
+
+CAPACITY MEASUREMENT
+Discharge capacity is computed as the integral of discharge current over time: Q = integral(I * dt). This is the most reliable capacity measurement. Voltage-based capacity estimates introduce error due to polarization effects. All capacity values in the dataset are measured discharge capacity (Ah).
+
+USE IN RESEARCH
+The dataset has been used to benchmark dozens of RUL prediction methods. State-of-the-art methods achieve RUL prediction errors of 10-20 cycles (RMSE) on held-out batteries, with wider errors for batteries far from the training distribution (domain shift). Methods that incorporate uncertainty quantification consistently outperform point prediction methods in deployment scenarios because they communicate when predictions should not be trusted.

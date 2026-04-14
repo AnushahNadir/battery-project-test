@@ -2,7 +2,7 @@
   "rmse": 22.077509446499025,
   "mae": 13.180140098810874,
   "trajectory_shape_error": 0.31132961157883143,
-  "battery_generalization_score": 21.517575179525323,
+  "battery_generalization_score": 18.956920717097148,
   "per_battery_rmse": {
     "B0030": 1.2458160592823875,
     "B0033": 4.731176438128634,

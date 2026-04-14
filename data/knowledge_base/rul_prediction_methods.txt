@@ -1,0 +1,31 @@
+Remaining Useful Life Prediction for Lithium-Ion Batteries
+
+Remaining useful life (RUL) prediction is the task of estimating how many cycles a battery can complete before its capacity drops below the end-of-life threshold (typically 80% of rated capacity). Accurate RUL prediction enables proactive maintenance and prevents unexpected failures.
+
+DIRECT DATA-DRIVEN METHODS
+Data-driven methods learn the mapping from observable features to RUL directly from historical battery cycling data without requiring explicit physical models.
+
+Regression methods (linear regression, support vector regression, Gaussian process regression, XGBoost, random forests) predict RUL as a continuous scalar. Features are extracted from cycle-level data: discharge capacity, internal resistance estimates, voltage curve shape parameters, temperature statistics. XGBoost and gradient-boosted methods are particularly effective because they handle nonlinear feature interactions, are robust to irrelevant features, and naturally quantify feature importance via SHAP values.
+
+Deep learning methods (LSTM, GRU, Temporal Convolutional Networks, Transformers) process sequences of cycles directly. They can capture temporal dependencies without manual feature engineering. Temporal Convolutional Networks (TCNs) are preferred over LSTMs for this task because they support parallelization during training, avoid vanishing gradient problems, and typically converge faster on fixed-length cycle sequences.
+
+PHYSICS-INFORMED METHODS
+Semi-empirical models parameterize degradation curves (e.g. capacity = Q0 - alpha * exp(beta * cycle) - gamma * cycle) and fit parameters to observations. They are interpretable but require careful initialization and may not generalize across operating conditions. The parabolic capacity fade model (Q = Q0 - k * sqrt(cycle)) captures diffusion-limited SEI growth but underestimates fade from mechanical degradation at high C-rates.
+
+UNCERTAINTY QUANTIFICATION
+Point predictions of RUL are insufficient for decision-making. Uncertainty bounds communicate prediction reliability. Conformal prediction is a statistically rigorous framework that provides coverage guarantees: a 90% prediction interval contains the true RUL for at least 90% of batteries from the same distribution. Conformal prediction is distribution-free and requires only exchangeability, making it appropriate for battery datasets where distribution assumptions are hard to verify. Quantile regression (e.g. XGBoost with pinball loss) provides asymmetric intervals that are especially useful when failure risk is one-sided.
+
+KEY PREDICTIVE FEATURES
+Discharge capacity: Most informative single feature. Monotonic decline over cycles is the primary signal.
+Cycle number (cycle_index): Captures elapsed aging. Strong predictor near end-of-life.
+Temperature (temp_mean, temp_max): Higher temperature accelerates degradation. Batteries operated above 45°C degrade 2-4x faster than those at 25°C.
+Minimum voltage (v_min): Higher minimum voltage during discharge indicates healthier cell (less polarization).
+Minimum current (i_min): Reflects impedance growth; cells with high internal resistance reach current cutoff sooner.
+Capacity curve slope: The rate of capacity fade (dQ/dn) is more predictive than absolute capacity for remaining life.
+Voltage curve integral: Area under the voltage-time curve during discharge (proportional to discharge energy) captures both capacity and impedance degradation.
+
+DATA SPLITTING FOR BATTERY RUL MODELS
+Critical requirement: split by battery ID, never by cycle. Randomly splitting cycles from the same battery into train/test causes data leakage — the model sees future cycles of a battery it claims not to know. Battery-level GroupKFold cross-validation is the correct evaluation methodology. Typical splits use 60-70% of batteries for training, 10-20% for calibration (conformal prediction), and 20% for held-out test evaluation.
+
+PREDICTION HORIZON
+The 20-cycle prediction horizon is standard in battery prognostics literature. Shorter horizons (5 cycles) give insufficient time for maintenance actions. Longer horizons (100+ cycles) reduce discrimination: most batteries near end-of-life fail within 100 cycles so the risk signal is low-information. The 20-cycle horizon is configurable and should match the operational maintenance schedule.

@@ -229,14 +229,28 @@ class ConformalCalibrator:
         model,
         train_df: Optional[pd.DataFrame] = None,
         actual_train_batteries: Optional[list[str]] = None,
+        lobo_groups_override: Optional[set[str]] = None,
     ) -> "ConformalCalibrator":
+        """
+        Fit the calibrator.
+
+        Parameters
+        ----------
+        lobo_groups_override : set[str] | None
+            If provided, overrides ``configs/pipeline.yaml`` conformal.lobo_groups.
+            Pass an empty set to disable LOBO for all groups (stratified-split mode).
+        """
         if cal_df.empty:
             raise ValueError("Calibration DataFrame is empty.")
 
         rul_col = self.rul_col if self.rul_col in cal_df.columns else "rul"
         alpha = 1.0 - float(self.coverage)
         cfg = get_config()
-        lobo_groups = frozenset(cfg.conformal.lobo_groups)
+        lobo_groups = (
+            frozenset(lobo_groups_override)
+            if lobo_groups_override is not None
+            else frozenset(cfg.conformal.lobo_groups)
+        )
         min_cal_batteries = int(cfg.conformal.min_cal_batteries)
         safety_factor = float(cfg.conformal.safety_factor)
         work = cal_df.copy()

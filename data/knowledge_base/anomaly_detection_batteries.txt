@@ -1,0 +1,33 @@
+Anomaly Detection in Battery Degradation Trajectories
+
+WHAT CONSTITUTES AN ANOMALY
+In battery degradation, an anomaly is a cycle where the measured capacity or derived features deviate significantly from the expected degradation trajectory. Anomalies may indicate: unexpected rapid fade (accelerated aging event), measurement artifact (sensor fault, test equipment issue), unusual operating conditions (temperature excursion, over-discharge), or internal cell events (lithium plating episode, micro-short circuit).
+
+Anomalies must be distinguished from natural variability. Discharge capacity varies cycle-to-cycle due to temperature fluctuations, SOC variation at cycle start, and measurement noise (typically ±0.5-1% of rated capacity). Statistical anomaly detection methods set thresholds that balance sensitivity (detecting real anomalies) against specificity (avoiding false alarms on normal variability).
+
+RESIDUAL-BASED ANOMALY DETECTION
+The most common approach fits a degradation model (linear trend, exponential fit, or ML model) to the capacity trajectory and computes residuals: r_t = Q_observed - Q_predicted. Cycles where |r_t| exceeds a threshold (e.g. 3 standard deviations of normal residuals, or a fixed absolute threshold based on rated capacity) are flagged as anomalies. The anomaly score quantifies severity: higher scores indicate larger deviations.
+
+For the NASA CALCE dataset, a residual spike anomaly occurs when the model-predicted RUL significantly overestimates or underestimates observed RUL. An anomaly score above 50 cycles indicates a strong deviation; scores above 30 cycles are worth monitoring; below 10 cycles falls within normal prediction uncertainty.
+
+TRAJECTORY SHAPE ANOMALIES
+Beyond point anomalies (single cycle deviations), trajectory shape anomalies capture sustained changes in the degradation rate. A sudden inflection in the capacity-cycle curve (knee-point acceleration) is a critical trajectory anomaly: it signals that the battery has entered a rapid degradation phase. The knee point in LiCoO2/graphite batteries typically occurs when lithium inventory is exhausted beyond the cathode-limited region, triggering accelerated SEI growth and mechanical damage. Detecting the knee point 20-50 cycles before end-of-life is the highest-value anomaly detection task.
+
+BATTERY B0036 ANOMALY INTERPRETATION
+Battery B0036 shows 32 anomalous cycles, concentrated in the first 30 cycles (residual_spike type). This pattern is consistent with early formation cycling behavior: during the first 10-30 cycles, capacity often exhibits non-monotonic variation as the SEI stabilizes. The residual spike anomaly score peaks at ~66 in cycle 16. This is not indicative of an acute failure; rather, it reflects the model having been trained predominantly on data from batteries that have already completed their formation phase. B0036's early cycles look anomalous relative to the training distribution's expectations.
+
+This finding is practically important: it suggests the prediction model should be recalibrated or flagged as less reliable for very early cycle predictions (cycles 1-30) across all batteries, not just B0036.
+
+ANOMALY DETECTION METHODS
+Z-score on residuals: Simple and interpretable. Assumes residuals are approximately Gaussian after trend removal. Threshold typically set at 2.5-3.5 standard deviations.
+
+Isolation Forest: Ensemble method that isolates anomalies by random partitioning. Effective for multivariate anomaly detection (combining capacity, temperature, voltage features). Does not require stationarity assumption.
+
+LSTM/Autoencoder: Reconstruction error flags cycles that the model cannot accurately reconstruct from the learned normal degradation manifold. Effective for detecting subtle distributional shifts but requires substantial training data.
+
+One-class SVM: Learns a boundary around normal degradation behavior in feature space. Works well with small datasets but is sensitive to hyperparameter tuning.
+
+For the NASA CALCE dataset size (34 batteries, ~7000 cycles), residual-based methods and isolation forest are most appropriate. Deep learning approaches risk overfitting given the limited battery count.
+
+INTEGRATION WITH RUL PREDICTION
+Anomaly detection output should modulate confidence in RUL predictions. A battery with recent anomalous cycles should have wider prediction intervals. In a production monitoring system, anomaly detection alerts should trigger human review before automated maintenance decisions are made. The anti-hallucination principle requires that anomaly labels be grounded in measured data, not inferred from external knowledge or model extrapolation.

@@ -56,10 +56,13 @@ class LocalEvidenceRetriever:
         sources: List[Path] = []
         docs_dir = self.project_root / "docs"
         extra_dir = self.project_root / "data" / "raw" / "extra_infos"
+        kb_dir = self.project_root / "data" / "knowledge_base"
         if docs_dir.exists():
             sources.extend(sorted(docs_dir.glob("*.md")))
         if extra_dir.exists():
             sources.extend(sorted(extra_dir.glob("*.txt")))
+        if kb_dir.exists():
+            sources.extend(sorted(kb_dir.glob("*.txt")))
         return [p for p in sources if p.is_file()]
 
     def build(self, source_paths: Iterable[Path] | None = None) -> int:

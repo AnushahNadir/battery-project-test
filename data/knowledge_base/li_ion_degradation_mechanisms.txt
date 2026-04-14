@@ -1,0 +1,27 @@
+Lithium-Ion Battery Degradation Mechanisms
+
+Li-ion batteries degrade through several interconnected physical and chemical mechanisms that reduce capacity and increase internal resistance over their lifetime.
+
+SOLID ELECTROLYTE INTERPHASE (SEI) LAYER GROWTH
+The SEI layer forms on the graphite anode surface during the first charge cycle as electrolyte components reduce. It is a mixed ionic/electronic conductor that allows lithium ions to pass while blocking electrons. Over time, the SEI continues to grow with each cycle, consuming active lithium and electrolyte. SEI growth is the dominant degradation mechanism at low temperatures and moderate state-of-charge (SOC) ranges. It is thermally activated, following Arrhenius kinetics, which is why capacity fade accelerates at elevated temperatures. SEI growth follows a square-root-of-time relationship under storage conditions (parabolic growth), but under cycling the relationship becomes more linear due to mechanical cracking and reformation.
+
+LITHIUM PLATING
+When lithium ions cannot intercalate into graphite fast enough (e.g. high charge rates, low temperatures, high SOC), metallic lithium deposits on the anode surface. Lithium plating is irreversible when the deposited lithium loses electrical contact and becomes "dead lithium." It is highly sensitive to temperature: below 0°C, plating occurs even at moderate charge rates. Plating accelerates capacity fade nonlinearly and creates safety hazards (dendrite growth leading to short circuits).
+
+CATHODE DEGRADATION
+Cathode materials (NMC, LCO, LFP) degrade through structural disordering, phase transitions, and dissolution of transition metals into the electrolyte. For NMC chemistries, the layered structure transforms to a spinel or rock-salt phase near the particle surface, reducing ionic conductivity. Particle cracking due to volume changes during lithiation/delithiation exposes fresh surfaces to electrolyte, accelerating side reactions. Transition metal dissolution (Mn, Co, Ni) poisons the anode SEI and increases cell impedance.
+
+ELECTROLYTE DECOMPOSITION
+At high voltages (above ~4.3V vs Li/Li+) or elevated temperatures, the electrolyte (typically LiPF6 in organic carbonate solvents) decomposes. Products include HF (from LiPF6 hydrolysis), which attacks oxide cathode surfaces, and organic byproducts that deposit on electrodes as resistive films. Electrolyte decomposition increases cell impedance and reduces power capability.
+
+MECHANICAL DEGRADATION
+Volume changes in electrode materials during lithium insertion and extraction (typically 3-7% for graphite, 5-15% for NMC) create mechanical stresses. Repeated cycling leads to particle fracture and electrode delamination. Loss of contact between active material particles and the current collector increases resistance. Mechanical degradation is worsened by high C-rates, deep discharge, and low temperatures.
+
+CALENDAR AGING vs CYCLE AGING
+Calendar aging occurs during storage and is driven primarily by temperature and SOC level. High SOC accelerates cathode oxidation and SEI growth. High temperature accelerates all thermally activated mechanisms. Cycle aging adds mechanical fatigue, lithium plating risk, and active material isolation. NASA CALCE datasets primarily capture cycle aging as batteries are run through full charge-discharge cycles to end of life.
+
+CAPACITY FADE AND END-OF-LIFE CRITERION
+The standard end-of-life criterion for lithium-ion batteries is 80% of the initial rated capacity (e.g. 1.4 Ah remaining for a 1.75 Ah nominal cell). This threshold is used in EV applications worldwide and in battery research including the NASA CALCE dataset. After this point, batteries may still function but with significantly reduced energy density and increased risk of thermal events. Remaining useful life (RUL) is defined as the number of cycles from the current state until end-of-life capacity is reached.
+
+EFFECTS ON IMPEDANCE
+All degradation mechanisms increase cell impedance: SEI growth adds ohmic and charge-transfer resistance; lithium plating adds surface film resistance; cathode degradation reduces ionic conductivity; electrolyte decomposition adds resistive films. Electrochemical impedance spectroscopy (EIS) can decompose these contributions. In the NASA CALCE dataset, impedance measurements are taken periodically as part of the impedance operational profile. Increasing charge-transfer resistance and decreasing capacitance are reliable early indicators of aging before significant capacity loss is visible.
