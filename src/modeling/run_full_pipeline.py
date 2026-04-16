@@ -37,6 +37,7 @@ sys.path.append(str(Path(__file__).resolve().parents[2]))
 
 from src.log import setup_logging
 from src.modeling.anomaly_detection import run_anomaly_detection
+from src.modeling.reliability_audit import AuditConfig, run_reliability_audit
 
 logger = logging.getLogger(__name__)
 from src.modeling.ml_model import (
@@ -651,6 +652,81 @@ def main() -> None:
         feature_columns=FEATURE_COLUMNS,
         output_dir=output_dir,
     )
+
+    logger.info("=" * 50)
+    logger.info("RELIABILITY AUDIT LAYER")
+    logger.info("=" * 50)
+
+    # Load outputs produced by earlier stages for per-battery aggregation
+    _unc_path  = output_dir / "uncertainty_estimates.json"
+    _surv_path = output_dir / "survival_risk_predictions.csv"
+    _anom_path = output_dir / "anomalies.json"
+
+    unc_df_audit  = pd.DataFrame(json.loads(_unc_path.read_text(encoding="utf-8"))) \
+                    if _unc_path.exists() else pd.DataFrame()
+    surv_df_audit = pd.read_csv(_surv_path) if _surv_path.exists() else pd.DataFrame()
+    anom_df_audit = pd.DataFrame(json.loads(_anom_path.read_text(encoding="utf-8"))) \
+                    if _anom_path.exists() else pd.DataFrame()
+
+    audit_cfg_section = getattr(cfg, "audit", None)
+    audit_cfg = AuditConfig(
+        observation_window  = getattr(audit_cfg_section, "observation_window",  10),
+        warn_interval_width = getattr(audit_cfg_section, "warn_interval_width", 80.0),
+        fail_interval_width = getattr(audit_cfg_section, "fail_interval_width", 120.0),
+        warn_risk           = getattr(audit_cfg_section, "warn_risk",           0.30),
+        fail_risk           = getattr(audit_cfg_section, "fail_risk",           0.70),
+        warn_anomaly_count  = getattr(audit_cfg_section, "warn_anomaly_count",  1),
+        fail_anomaly_count  = getattr(audit_cfg_section, "fail_anomaly_count",  3),
+    ) if audit_cfg_section else AuditConfig()
+
+    _, audit_metrics = run_reliability_audit(
+        features_df   = df,
+        uncertainty_df= unc_df_audit,
+        survival_df   = surv_df_audit,
+        anomaly_df    = anom_df_audit,
+        output_dir    = output_dir,
+        audit_cfg     = audit_cfg,
+    )
+    logger.info(f"Audit labels: {audit_metrics.get('label_counts', {})}")
+
+    # ── Standardized metric output files (Phase 6) ────────────────────────────
+    # metrics_prediction.json
+    (output_dir / "metrics_prediction.json").write_text(json.dumps({
+        "xgboost_rmse":   round(float(ml_metrics.rmse), 4),
+        "xgboost_mae":    round(float(getattr(ml_metrics, "mae", float("nan"))), 4),
+        "tcn_rmse":       round(float(dl_metrics.rmse), 4),
+        "tcn_mae":        round(float(getattr(dl_metrics, "mae", float("nan"))), 4),
+        "stat_rmse":      round(float(stat_metrics.rmse), 4),
+        "cv_mean_rmse":   round(float(cv_metrics.mean_rmse), 4) if cv_metrics else None,
+        "cv_std_rmse":    round(float(cv_metrics.std_rmse), 4)  if cv_metrics else None,
+        "n_test_batteries": len(test_batteries),
+    }, indent=2), encoding="utf-8")
+
+    # metrics_uncertainty.json
+    unc_m = json.loads((output_dir / "uncertainty_metrics.json").read_text(encoding="utf-8")) \
+            if (output_dir / "uncertainty_metrics.json").exists() else {}
+    conf_m = json.loads((output_dir / "conformal_coverage_report.json").read_text(encoding="utf-8")) \
+             if (output_dir / "conformal_coverage_report.json").exists() else {}
+    (output_dir / "metrics_uncertainty.json").write_text(json.dumps({
+        "empirical_coverage":    unc_m.get("coverage_90_percent"),
+        "mean_interval_width":   unc_m.get("mean_uncertainty_width"),
+        "calibration_score":     unc_m.get("calibration_score"),
+        "per_group_coverage":    conf_m.get("per_group", {}),
+        "overall_coverage":      conf_m.get("overall_empirical_coverage"),
+    }, indent=2), encoding="utf-8")
+
+    # metrics_risk.json
+    surv_m = json.loads((output_dir / "survival_risk_metrics.json").read_text(encoding="utf-8")) \
+             if (output_dir / "survival_risk_metrics.json").exists() else {}
+    (output_dir / "metrics_risk.json").write_text(json.dumps({
+        "n_batteries":   surv_m.get("n_batteries"),
+        "n_rows":        surv_m.get("n_rows"),
+        "event_rate":    surv_m.get("event_rate"),
+        "horizon_cycles": cfg.risk.horizon_cycles,
+        "risk_distribution": unc_m.get("risk_distribution", {}),
+    }, indent=2), encoding="utf-8")
+
+    logger.info("Standardized metric files written: metrics_prediction, metrics_uncertainty, metrics_risk, metrics_audit")
 
     logger.info("=" * 50)
     logger.info("STAGE 6: SUPERVISOR REVIEW")

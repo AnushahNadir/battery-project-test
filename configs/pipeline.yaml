@@ -109,6 +109,22 @@ supervisor:
   rmse_pass_threshold: 100.0
   cv_rmse_ratio_warn_threshold: 1.5
 
+# Updated: 2026-04-16
+# Reliability Audit Layer — deterministic per-battery PASS/WARNING/FAIL rules.
+# Thresholds must be set from validation set percentiles, never from the test set.
+audit:
+  # Last K cycles per battery used for aggregation
+  observation_window: 10
+  # Uncertainty interval width thresholds (cycles)
+  warn_interval_width: 80.0
+  fail_interval_width: 120.0
+  # Near-term failure probability thresholds (0–1)
+  warn_risk: 0.30
+  fail_risk: 0.70
+  # Anomaly count thresholds (within observation window)
+  warn_anomaly_count: 1
+  fail_anomaly_count: 3
+
 paths:
   raw_data: data/raw
   processed_data: data/processed
