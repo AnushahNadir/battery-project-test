@@ -1,0 +1,28 @@
+{
+  "n_batteries": 38,
+  "label_counts": {
+    "PASS": 31,
+    "FAIL": 5,
+    "WARNING": 2
+  },
+  "label_rates": {
+    "PASS": 0.8158,
+    "FAIL": 0.1316,
+    "WARNING": 0.0526
+  },
+  "rmse_by_audit_label": {
+    "PASS": 10.4344,
+    "WARNING": 26.5774,
+    "FAIL": 30.7717
+  },
+  "severe_error_catch_rate": null,
+  "audit_config": {
+    "observation_window": 10,
+    "warn_interval_width": 80.0,
+    "fail_interval_width": 120.0,
+    "warn_risk": 0.3,
+    "fail_risk": 0.7,
+    "warn_anomaly_count": 1,
+    "fail_anomaly_count": 3
+  }
+}

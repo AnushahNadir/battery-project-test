@@ -1,0 +1,44 @@
+{
+  "protocol": "leave_one_calce_battery_out",
+  "calce_batteries": [
+    "CS2_35",
+    "CS2_36",
+    "CS2_37",
+    "CS2_38"
+  ],
+  "n_folds": 4,
+  "mean_rmse": 25.502,
+  "std_rmse": 14.7456,
+  "mean_mae": 16.4091,
+  "std_mae": 11.1554,
+  "per_fold": [
+    {
+      "left_out_battery": "CS2_35",
+      "n_train_batteries": 37,
+      "n_test_cycles": 924,
+      "rmse": 16.8024,
+      "mae": 10.0509
+    },
+    {
+      "left_out_battery": "CS2_36",
+      "n_train_batteries": 37,
+      "n_test_cycles": 909,
+      "rmse": 50.4634,
+      "mae": 35.3586
+    },
+    {
+      "left_out_battery": "CS2_37",
+      "n_train_batteries": 37,
+      "n_test_cycles": 986,
+      "rmse": 12.9695,
+      "mae": 7.0321
+    },
+    {
+      "left_out_battery": "CS2_38",
+      "n_train_batteries": 37,
+      "n_test_cycles": 1057,
+      "rmse": 21.7726,
+      "mae": 13.1946
+    }
+  ]
+}

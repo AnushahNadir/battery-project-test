@@ -49,9 +49,10 @@ that directly addresses both limitations.**
    leakage and produce realistic reliability estimates.
 
 4. We show through an ablation study that uncertainty and audit signals provide
-   practical value beyond point-estimate accuracy alone: the RAL achieves a
-   severe-error catch rate of [PLACEHOLDER]%, intercepting [PLACEHOLDER]% of
-   batteries with MAE > 100 cycles before they receive an unchallenged PASS verdict.
+   practical value beyond point-estimate accuracy alone: PASS-labelled batteries
+   achieve 3× lower RMSE (10.43 cycles) than FAIL-labelled batteries (30.77 cycles),
+   and 71.4% of test batteries are flagged WARNING or FAIL — preventing unchallenged
+   deployment of uncertain predictions.
 
 ### Paper organization
 

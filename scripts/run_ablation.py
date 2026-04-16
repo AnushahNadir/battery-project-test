@@ -178,10 +178,13 @@ def run_ablation() -> list[AblationResult]:
     # Mean interval width
     qpreds_b = model_b.predict_quantiles(test_df)
     iw_b = None
-    if "q_0.05" in qpreds_b.columns and "q_0.95" in qpreds_b.columns:
-        iw_b = float((qpreds_b["q_0.95"] - qpreds_b["q_0.05"]).mean())
+    lo_col = next((c for c in ["q05", "q_0.05"] if c in qpreds_b.columns), None)
+    hi_col = next((c for c in ["q95", "q_0.95"] if c in qpreds_b.columns), None)
+    if lo_col and hi_col:
+        iw_b = float((qpreds_b[hi_col] - qpreds_b[lo_col]).mean())
 
-    print(f"   RMSE={rmse_b:.2f}  MAE={mae_b:.2f}  Coverage={coverage_b*100:.1f}%  AvgWidth={iw_b:.1f if iw_b else 'N/A'}")
+    iw_str = f"{iw_b:.1f}" if iw_b is not None else "N/A"
+    print(f"   RMSE={rmse_b:.2f}  MAE={mae_b:.2f}  Coverage={coverage_b*100:.1f}%  AvgWidth={iw_str}")
 
     results.append(AblationResult(
         config="B", description="XGBoost + conformal uncertainty",
@@ -224,10 +227,12 @@ def run_ablation() -> list[AblationResult]:
 
     # Build uncertainty_df from quantile predictions + calibrator adjustments
     q_preds = model_b.predict_quantiles(test_df)
+    _lo_col = next((c for c in ["q05", "q_0.05"] if c in q_preds.columns), None)
+    _hi_col = next((c for c in ["q95", "q_0.95"] if c in q_preds.columns), None)
     unc_rows = []
     for i, (_, row) in enumerate(test_df.iterrows()):
-        lo = float(q_preds.iloc[i]["q_0.05"]) if "q_0.05" in q_preds.columns else float("nan")
-        hi = float(q_preds.iloc[i]["q_0.95"]) if "q_0.95" in q_preds.columns else float("nan")
+        lo = float(q_preds.iloc[i][_lo_col]) if _lo_col else float("nan")
+        hi = float(q_preds.iloc[i][_hi_col]) if _hi_col else float("nan")
         unc_rows.append({
             "battery_id":       row["battery_id"],
             "cycle_index":      row.get("cycle_index", i),

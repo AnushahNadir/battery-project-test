@@ -1,0 +1,11 @@
+{
+  "n_batteries": 7,
+  "n_rows": 2422,
+  "event_rate": 0.002477,
+  "horizon_cycles": 20,
+  "risk_distribution": {
+    "LOW": 2802,
+    "MEDIUM": 1507,
+    "HIGH": 2358
+  }
+}

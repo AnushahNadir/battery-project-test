@@ -1,0 +1,5 @@
+config,description,rmse,mae,coverage,mean_interval_width,pass_rate,warning_rate,fail_rate,severe_catch_rate
+A,XGBoost only,24.3555,14.3652,,,,,,
+B,XGBoost + conformal uncertainty,24.3555,14.3652,0.8993,72.34,,,,
+C,XGBoost + uncertainty + survival risk,24.3555,14.3652,0.8993,72.34,,,,
+D,Full system (XGBoost + uncertainty + risk + audit),24.3555,14.3652,0.8993,72.34,0.2857,0.0,0.7143,

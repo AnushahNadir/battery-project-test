@@ -1,0 +1,10 @@
+{
+  "xgboost_rmse": 25.7353,
+  "xgboost_mae": 15.4992,
+  "tcn_rmse": 27.1054,
+  "tcn_mae": 18.0013,
+  "stat_rmse": 130.1683,
+  "cv_mean_rmse": 50.1407,
+  "cv_std_rmse": 9.4784,
+  "n_test_batteries": 7
+}

@@ -1,0 +1,29 @@
+{
+  "empirical_coverage": 96.4,
+  "mean_interval_width": 70.45,
+  "calibration_score": 0.936,
+  "per_group_coverage": {
+    "room": {
+      "n_rows": 2178,
+      "empirical_coverage": 0.9068,
+      "q_hat": 45.1,
+      "strategy": "split",
+      "gap_vs_target": 0.0068
+    },
+    "hot": {
+      "n_rows": 40,
+      "empirical_coverage": 0.925,
+      "q_hat": 5.44,
+      "strategy": "split",
+      "gap_vs_target": 0.025
+    },
+    "cold": {
+      "n_rows": 204,
+      "empirical_coverage": 0.9559,
+      "q_hat": 69.19,
+      "strategy": "lobo",
+      "gap_vs_target": 0.0559
+    }
+  },
+  "overall_coverage": 0.9112
+}

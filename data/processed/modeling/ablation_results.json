@@ -1,0 +1,50 @@
+[
+  {
+    "config": "A",
+    "description": "XGBoost only",
+    "rmse": 24.3555,
+    "mae": 14.3652,
+    "coverage": null,
+    "mean_interval_width": null,
+    "pass_rate": null,
+    "warning_rate": null,
+    "fail_rate": null,
+    "severe_catch_rate": null
+  },
+  {
+    "config": "B",
+    "description": "XGBoost + conformal uncertainty",
+    "rmse": 24.3555,
+    "mae": 14.3652,
+    "coverage": 0.8993,
+    "mean_interval_width": 72.34,
+    "pass_rate": null,
+    "warning_rate": null,
+    "fail_rate": null,
+    "severe_catch_rate": null
+  },
+  {
+    "config": "C",
+    "description": "XGBoost + uncertainty + survival risk",
+    "rmse": 24.3555,
+    "mae": 14.3652,
+    "coverage": 0.8993,
+    "mean_interval_width": 72.34,
+    "pass_rate": null,
+    "warning_rate": null,
+    "fail_rate": null,
+    "severe_catch_rate": null
+  },
+  {
+    "config": "D",
+    "description": "Full system (XGBoost + uncertainty + risk + audit)",
+    "rmse": 24.3555,
+    "mae": 14.3652,
+    "coverage": 0.8993,
+    "mean_interval_width": 72.34,
+    "pass_rate": 0.2857,
+    "warning_rate": 0.0,
+    "fail_rate": 0.7143,
+    "severe_catch_rate": null
+  }
+]
