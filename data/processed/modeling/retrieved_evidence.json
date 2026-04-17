@@ -1,17 +1,17 @@
 [
   {
     "source_path": "data\\knowledge_base\\anomaly_detection_batteries.txt",
-    "score": 0.2596,
+    "score": 0.259,
     "text": "Anomaly Detection in Battery Degradation Trajectories WHAT CONSTITUTES AN ANOMALY In battery degradation, an anomaly is a cycle where the measured capacity or derived features deviate significantly from the expected degradation trajectory. Anomalies may indicate: unexpected rapid fade (accelerated aging event), measurement artifact (sensor fault, test equipment issue), unusual operating conditions (temperature excursion, over-discharge), or internal cell events (lithium plating episode, micro-short circuit). Anomalies must be distinguished from natural variability. Discharge capacity varies cycle-to-cycle due to temperature fluctuations, SOC variation at cycle start, and measurement noise (typically \u00b10.5-1% of rated capacity). Statistical anomaly detection methods set thresholds that balance sensitivity (detecting real anomalies) against specificity (avoiding false alarms on normal varia"
   },
   {
     "source_path": "data\\knowledge_base\\anomaly_detection_batteries.txt",
-    "score": 0.1365,
+    "score": 0.1333,
     "text": "ates observed RUL. An anomaly score above 50 cycles indicates a strong deviation; scores above 30 cycles are worth monitoring; below 10 cycles falls within normal prediction uncertainty. TRAJECTORY SHAPE ANOMALIES Beyond point anomalies (single cycle deviations), trajectory shape anomalies capture sustained changes in the degradation rate. A sudden inflection in the capacity-cycle curve (knee-point acceleration) is a critical trajectory anomaly: it signals that the battery has entered a rapid degradation phase. The knee point in LiCoO2/graphite batteries typically occurs when lithium inventory is exhausted beyond the cathode-limited region, triggering accelerated SEI growth and mechanical damage. Detecting the knee point 20-50 cycles before end-of-life is the highest-value anomaly detection task. BATTERY B0036 ANOMALY INTERPRETATION Battery B0036 shows 32 anomalous cycles, concentrated i"
   },
   {
     "source_path": "docs\\system_summary.md",
-    "score": 0.0887,
+    "score": 0.0917,
     "text": "# System Summary \u2014 Battery AI Co-Scientist This system analyzes lithium-ion battery degradation data to predict Remaining Useful Life (RUL) in a safe, auditable, and uncertainty-aware manner. ## What the system does 1. Standardizes raw metadata and time-series battery data 2. Computes cycle-level degradation features 3. Estimates Remaining Useful Life (RUL) 4. Trains statistical and machine-learning models 5. Quantifies uncertainty and assigns risk levels 6. Generates model-traceable explanations and counterfactuals 7. Produces a supervisor-audited final verdict ## Key guarantees - No predictions are made without uncertainty intervals - No explanations are generated without model evidence - All schema mappings are validated before modeling - All explanations are labeled as hypotheses, not causal claims ## Outputs - RUL predictions with confidence bounds - Risk categories (LOW / MEDIUM /"
   }
 ]

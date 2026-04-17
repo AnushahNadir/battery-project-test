@@ -564,3 +564,153 @@
 2026-04-16 00:40:12  INFO      __main__: ==================================================
 2026-04-16 00:40:12  INFO      __main__: PIPELINE COMPLETE
 2026-04-16 00:40:12  INFO      __main__: ==================================================
+2026-04-16 17:42:25  INFO      __main__: Loading data from D:\battery\battery-project3\data\processed\cycle_features_with_rul.csv...
+2026-04-16 17:42:25  INFO      src.modeling.conformal: 
+[Conformal calibration split]
+2026-04-16 17:42:25  INFO      src.modeling.conformal:    room [split]: cal=['B0026', 'B0028']  actual_train=['B0005', 'B0006', 'B0007', 'B0018', 'B0025', 'B0027', 'B0033', 'B0034', 'CS2_36', 'CS2_37']
+2026-04-16 17:42:25  INFO      src.modeling.conformal:     hot [split]: cal=['B0031']  actual_train=['B0029', 'B0032', 'B0038', 'B0039', 'B0040']
+2026-04-16 17:42:25  INFO      src.modeling.conformal:    cold [LOBO]: cal=['B0048', 'B0050', 'B0054']  actual_train=['B0042', 'B0043', 'B0045', 'B0046', 'B0047', 'B0049', 'B0051', 'B0053', 'B0055', 'B0056']
+2026-04-16 17:42:25  INFO      __main__: [Split]
+2026-04-16 17:42:25  INFO      __main__:   Total batteries: 38
+2026-04-16 17:42:25  INFO      __main__:   Train batteries: 31
+2026-04-16 17:42:25  INFO      __main__:   Actual train:    25
+2026-04-16 17:42:25  INFO      __main__:   Calibration:     6
+2026-04-16 17:42:25  INFO      __main__:   Test batteries:  7
+2026-04-16 17:42:25  INFO      __main__:   Split seed:      42
+2026-04-16 17:42:25  INFO      __main__:   Train temp mix:  {'room': 12, 'hot': 6, 'cold': 13}
+2026-04-16 17:42:25  INFO      __main__:   Actual train mix:{'room': 10, 'hot': 5, 'cold': 10}
+2026-04-16 17:42:25  INFO      __main__:   Cal temp mix:    {'room': 2, 'hot': 1, 'cold': 3}
+2026-04-16 17:42:25  INFO      __main__:   Test temp mix:   {'room': 3, 'hot': 1, 'cold': 3}
+2026-04-16 17:42:25  INFO      __main__:   Pre-train anomaly rows removed from train: 3/3952 (0.1%)
+2026-04-16 17:42:25  INFO      __main__:   Pre-train anomaly rows flagged in test: 0/2422
+2026-04-16 17:42:25  INFO      __main__:   Pre-train anomaly rows flagged in calibration: 8/296
+2026-04-16 17:42:25  INFO      __main__: ==================================================
+2026-04-16 17:42:25  INFO      __main__: STAGE 3: MODELING
+2026-04-16 17:42:25  INFO      __main__: ==================================================
+2026-04-16 17:42:25  INFO      src.modeling.statistical_baseline: Training statistical baseline on 25 batteries...
+2026-04-16 17:42:25  INFO      src.modeling.statistical_baseline:   Train samples: 3949
+2026-04-16 17:42:25  INFO      src.modeling.statistical_baseline:   Test samples: 2422
+2026-04-16 17:42:25  INFO      src.modeling.statistical_baseline: Evaluating on test set...
+2026-04-16 17:42:26  INFO      src.modeling.statistical_baseline:   RMSE: 130.17 cycles
+2026-04-16 17:42:26  INFO      src.modeling.statistical_baseline:   MAE: 94.97 cycles
+2026-04-16 17:42:26  INFO      src.modeling.statistical_baseline:   Battery Generalization: 97.10
+2026-04-16 17:42:26  INFO      src.modeling.statistical_baseline:   Saved model to D:\battery\battery-project3\trained_models\statistical_baseline.pkl
+2026-04-16 17:42:26  INFO      src.modeling.ml_model: Training XGBoost model on 25 batteries...
+2026-04-16 17:42:26  INFO      src.modeling.ml_model:   Train samples: 3949
+2026-04-16 17:42:26  INFO      src.modeling.ml_model:   Test samples: 2422
+2026-04-16 17:42:27  INFO      src.modeling.ml_model: Evaluating on test set...
+2026-04-16 17:42:27  INFO      src.modeling.ml_model:   RMSE: 25.74 cycles
+2026-04-16 17:42:27  INFO      src.modeling.ml_model:   MAE: 15.50 cycles
+2026-04-16 17:42:27  INFO      src.modeling.ml_model:   Battery Generalization: 19.57
+2026-04-16 17:42:27  INFO      src.modeling.ml_model:   Top 5 features by importance:
+2026-04-16 17:42:27  INFO      src.modeling.ml_model:     cycle_index: 0.242
+2026-04-16 17:42:27  INFO      src.modeling.ml_model:     v_mean: 0.208
+2026-04-16 17:42:27  INFO      src.modeling.ml_model:     ah_est: 0.191
+2026-04-16 17:42:27  INFO      src.modeling.ml_model:     energy_j: 0.133
+2026-04-16 17:42:27  INFO      src.modeling.ml_model:     i_min: 0.097
+2026-04-16 17:42:27  INFO      src.modeling.ml_model:   Saved model to D:\battery\battery-project3\trained_models\xgboost_model
+2026-04-16 17:42:27  INFO      src.modeling.dl_sequence_model: Training sequence model on 25 batteries...
+2026-04-16 17:42:27  INFO      src.modeling.dl_sequence_model:   Train samples: 3949
+2026-04-16 17:42:27  INFO      src.modeling.dl_sequence_model:   Test samples: 2422
+2026-04-16 17:42:42  INFO      src.modeling.dl_sequence_model:   Backend: torch_tcn
+2026-04-16 17:42:42  INFO      src.modeling.dl_sequence_model:   RMSE: 27.11 cycles
+2026-04-16 17:42:42  INFO      src.modeling.dl_sequence_model:   MAE: 18.00 cycles
+2026-04-16 17:42:42  INFO      src.modeling.dl_sequence_model:   Battery Generalization: 27.05
+2026-04-16 17:42:42  INFO      src.modeling.dl_sequence_model:   Config: seq_len=8, hidden=32, lr=0.001, epochs=60, batch=64, dropout=0.1
+2026-04-16 17:42:42  INFO      src.modeling.dl_sequence_model:   Saved model to D:\battery\battery-project3\trained_models\dl_sequence_model.pkl
+2026-04-16 17:42:42  INFO      src.modeling.ml_model: [GroupKFold CV] n_splits=5, batteries=25
+2026-04-16 17:42:43  INFO      src.modeling.ml_model:   fold=1/5 train_batteries=24 val_batteries=1 rmse=68.15 mae=42.82
+2026-04-16 17:42:43  INFO      src.modeling.ml_model:   fold=2/5 train_batteries=24 val_batteries=1 rmse=50.81 mae=31.74
+2026-04-16 17:42:43  INFO      src.modeling.ml_model:   fold=3/5 train_batteries=18 val_batteries=7 rmse=46.24 mae=32.79
+2026-04-16 17:42:44  INFO      src.modeling.ml_model:   fold=4/5 train_batteries=17 val_batteries=8 rmse=42.54 mae=31.21
+2026-04-16 17:42:44  INFO      src.modeling.ml_model:   fold=5/5 train_batteries=17 val_batteries=8 rmse=42.97 mae=29.10
+2026-04-16 17:42:44  INFO      src.modeling.ml_model:   summary: mean_rmse=50.14 (+/- 9.48), mean_mae=33.53 (+/- 4.80)
+2026-04-16 17:42:44  INFO      src.modeling.conformal: 
+[Conformal calibration  coverage=90%]
+2026-04-16 17:42:44  INFO      src.modeling.conformal:    room [split]  n_scores=  56  n_batteries=2  q_hat=45.10  score_p50=25.1  score_p90=43.6
+2026-04-16 17:42:44  INFO      src.modeling.conformal:     hot [split]  n_scores=  40  n_batteries=1  q_hat=5.44*  score_p50=1.9  score_p90=4.3
+2026-04-16 17:42:44  INFO      src.modeling.conformal:     [LOBO] calibrating on 13 batteries (leave-one-out): ['B0042', 'B0043', 'B0045', 'B0046', 'B0047', 'B0048', 'B0049', 'B0050', 'B0051', 'B0053', 'B0054', 'B0055', 'B0056']
+2026-04-16 17:42:46  INFO      src.modeling.conformal:       leave_out=B0042: 112 scores, mean_residual=21.0, max=99.8
+2026-04-16 17:42:47  INFO      src.modeling.conformal:       leave_out=B0043: 112 scores, mean_residual=21.5, max=81.4
+2026-04-16 17:42:48  INFO      src.modeling.conformal:       leave_out=B0045: 72 scores, mean_residual=4.9, max=67.0
+2026-04-16 17:42:50  INFO      src.modeling.conformal:       leave_out=B0046: 72 scores, mean_residual=9.8, max=162.1
+2026-04-16 17:42:51  INFO      src.modeling.conformal:       leave_out=B0047: 72 scores, mean_residual=8.3, max=210.3
+2026-04-16 17:42:52  INFO      src.modeling.conformal:       leave_out=B0048: 72 scores, mean_residual=5.7, max=25.8
+2026-04-16 17:42:53  INFO      src.modeling.conformal:       leave_out=B0049: 25 scores, mean_residual=10.0, max=27.8
+2026-04-16 17:42:55  INFO      src.modeling.conformal:       leave_out=B0050: 25 scores, mean_residual=56.3, max=130.7
+2026-04-16 17:42:56  INFO      src.modeling.conformal:       leave_out=B0051: 25 scores, mean_residual=30.2, max=69.4
+2026-04-16 17:42:57  INFO      src.modeling.conformal:       leave_out=B0053: 56 scores, mean_residual=19.6, max=56.4
+2026-04-16 17:42:59  INFO      src.modeling.conformal:       leave_out=B0054: 103 scores, mean_residual=26.2, max=81.5
+2026-04-16 17:43:00  INFO      src.modeling.conformal:       leave_out=B0055: 102 scores, mean_residual=50.3, max=97.4
+2026-04-16 17:43:01  INFO      src.modeling.conformal:       leave_out=B0056: 102 scores, mean_residual=53.5, max=105.3
+2026-04-16 17:43:01  INFO      src.modeling.conformal:    cold [lobo]  n_scores= 950  n_batteries=13  q_hat=69.19  score_p50=13.8  score_p90=69.0
+2026-04-16 17:43:01  INFO      src.modeling.conformal:   global fallback q_hat = 65.44
+2026-04-16 17:43:01  INFO      src.modeling.conformal:   Saved conformal calibrator -> D:\battery\battery-project3\trained_models\conformal_calibrator.json
+2026-04-16 17:43:01  INFO      src.pipeline.drift:   [DriftMonitor] saved reference distributions -> D:\battery\battery-project3\trained_models\feature_distributions.json
+2026-04-16 17:43:01  INFO      src.pipeline.drift: 
+[DriftMonitor test_set] overall=RED rows=2422 batteries=7
+2026-04-16 17:43:01  INFO      src.pipeline.drift:   i_min        psi= 4.5468 status=RED     train_mu=  0.481 actual_mu=  0.899 shift= +0.418
+2026-04-16 17:43:01  INFO      src.pipeline.drift:   i_mean       psi= 2.8058 status=RED     train_mu=  1.340 actual_mu=  1.191 shift= -0.149
+2026-04-16 17:43:01  INFO      src.pipeline.drift:   v_min        psi= 2.3221 status=RED     train_mu=  1.296 actual_mu=  2.209 shift= +0.914
+2026-04-16 17:43:01  INFO      src.pipeline.drift:   temp_max     psi= 1.9613 status=RED     train_mu= 30.971 actual_mu= 25.698 shift= -5.273
+2026-04-16 17:43:01  INFO      src.pipeline.drift:   temp_mean    psi= 0.8720 status=RED     train_mu= 26.653 actual_mu= 24.892 shift= -1.761
+2026-04-16 17:43:01  INFO      src.pipeline.drift:   v_mean       psi= 0.7341 status=RED     train_mu=  2.662 actual_mu=  3.246 shift= +0.584
+2026-04-16 17:43:01  INFO      src.pipeline.drift:   capacity     psi= 0.7141 status=RED     train_mu=  1.116 actual_mu=  0.927 shift= -0.189
+2026-04-16 17:43:01  INFO      src.pipeline.drift:   ah_est       psi= 0.6581 status=RED     train_mu=  1.066 actual_mu=  0.922 shift= -0.144
+2026-04-16 17:43:01  INFO      src.pipeline.drift:   energy_j     psi= 0.2087 status=RED     train_mu=10189.495 actual_mu=10884.814 shift=+695.319
+2026-04-16 17:43:01  INFO      src.pipeline.drift:   duration_s   psi= 0.2017 status=RED     train_mu=3059.376 actual_mu=2785.064 shift=-274.312
+2026-04-16 17:43:01  INFO      src.pipeline.drift:   alerts=7
+2026-04-16 17:43:01  INFO      src.pipeline.drift:     - temp_mean PSI=0.872 exceeds red threshold 0.20
+2026-04-16 17:43:01  INFO      src.pipeline.drift:     - temp_max PSI=1.961 exceeds red threshold 0.20
+2026-04-16 17:43:01  INFO      src.pipeline.drift:     - v_min PSI=2.322 exceeds red threshold 0.20
+2026-04-16 17:43:01  INFO      src.pipeline.drift:     - v_mean PSI=0.734 exceeds red threshold 0.20
+2026-04-16 17:43:01  INFO      src.pipeline.drift:     - i_mean PSI=2.806 exceeds red threshold 0.20
+2026-04-16 17:43:01  INFO      src.pipeline.drift:     - i_min PSI=4.547 exceeds red threshold 0.20
+2026-04-16 17:43:01  INFO      src.pipeline.drift:     - duration_s PSI=0.202 exceeds red threshold 0.20
+2026-04-16 17:43:01  INFO      __main__:   Uncertainty ensemble weights: stat=0.000, ml=0.513, dl=0.487
+2026-04-16 17:43:01  INFO      __main__:   Statistical baseline excluded from uncertainty ensemble (underperforming).
+2026-04-16 17:43:01  INFO      __main__:   Drift report -> D:\battery\battery-project3\data\processed\modeling\drift_report.json
+2026-04-16 17:43:01  INFO      __main__:   GroupKFold CV report -> D:\battery\battery-project3\data\processed\modeling\groupkfold_cv_report.json
+2026-04-16 17:43:01  INFO      __main__: ==================================================
+2026-04-16 17:43:01  INFO      __main__: STAGE 4: UNCERTAINTY & RISK
+2026-04-16 17:43:01  INFO      __main__: ==================================================
+2026-04-16 17:43:01  INFO      __main__: Running uncertainty on full dataset: rows=6667 batteries=38 (test rows=2422)
+2026-04-16 17:43:01  INFO      src.modeling.uncertainty: Running uncertainty quantification...
+2026-04-16 17:43:03  INFO      src.modeling.conformal: 
+[Conformal coverage report  target=90%]
+2026-04-16 17:43:03  INFO      src.modeling.conformal:   Overall: 91.1%
+2026-04-16 17:43:03  INFO      src.modeling.conformal:    room [split]: 90.7%  (gap=+0.7%  q_hat=45.1  n=2178)  OK
+2026-04-16 17:43:03  INFO      src.modeling.conformal:     hot [split]: 92.5%  (gap=+2.5%  q_hat=5.4  n=40)  OK
+2026-04-16 17:43:03  INFO      src.modeling.conformal:    cold [lobo]: 95.6%  (gap=+5.6%  q_hat=69.2  n=204)  OK
+2026-04-16 17:43:03  INFO      __main__: ==================================================
+2026-04-16 17:43:03  INFO      __main__: STAGE 4.2: SURVIVAL/HAZARD RISK
+2026-04-16 17:43:03  INFO      __main__: ==================================================
+2026-04-16 17:43:03  INFO      __main__: Saved survival risk outputs for 2422 rows across 7 batteries
+2026-04-16 17:43:03  INFO      __main__: ==================================================
+2026-04-16 17:43:03  INFO      __main__: STAGE 4.5: ANOMALY DETECTION
+2026-04-16 17:43:03  INFO      __main__: ==================================================
+2026-04-16 17:43:03  INFO      src.modeling.anomaly_detection: Running anomaly detection...
+2026-04-16 17:43:03  INFO      src.modeling.anomaly_detection:   Detected 122 anomalies
+2026-04-16 17:43:03  INFO      src.modeling.anomaly_detection:   Saved to D:\battery\battery-project3\data\processed\modeling\anomalies.json
+2026-04-16 17:43:03  INFO      __main__: Detected 122 anomalies
+2026-04-16 17:43:03  INFO      __main__: ==================================================
+2026-04-16 17:43:03  INFO      __main__: STAGE 5: REASONING
+2026-04-16 17:43:03  INFO      __main__: ==================================================
+2026-04-16 17:43:03  INFO      src.modeling.reasoning: Running reasoning and explanation analysis...
+2026-04-16 17:43:07  INFO      src.modeling.reasoning: Using model feature importance (Skipping SHAP for xgboost>=3 compatibility; using model feature importance.)
+2026-04-16 17:43:07  INFO      src.modeling.reasoning:   Saved explanations: 10 features, 5 hypotheses, 12 counterfactuals
+2026-04-16 17:43:07  INFO      __main__: ==================================================
+2026-04-16 17:43:07  INFO      __main__: RELIABILITY AUDIT LAYER
+2026-04-16 17:43:07  INFO      __main__: ==================================================
+2026-04-16 17:43:08  INFO      src.modeling.reliability_audit: Per-battery results -> D:\battery\battery-project3\data\processed\modeling\per_battery_results.csv  (38 batteries)
+2026-04-16 17:43:08  INFO      src.modeling.reliability_audit: Audit metrics -> D:\battery\battery-project3\data\processed\modeling\metrics_audit.json
+2026-04-16 17:43:08  INFO      __main__: Audit labels: {'PASS': 31, 'FAIL': 5, 'WARNING': 2}
+2026-04-16 17:43:08  INFO      __main__: Standardized metric files written: metrics_prediction, metrics_uncertainty, metrics_risk, metrics_audit
+2026-04-16 17:43:08  INFO      __main__: ==================================================
+2026-04-16 17:43:08  INFO      __main__: STAGE 6: SUPERVISOR REVIEW
+2026-04-16 17:43:08  INFO      __main__: ==================================================
+2026-04-16 17:43:08  INFO      src.modeling.supervisor_review: Generated Final System Report at D:\battery\battery-project3\data\processed\modeling\final_system_report.md
+2026-04-16 17:43:08  INFO      __main__: Manifest written to D:\battery\battery-project3\data\processed\modeling\manifest.json
+2026-04-16 17:43:08  INFO      __main__: ==================================================
+2026-04-16 17:43:08  INFO      __main__: PIPELINE COMPLETE
+2026-04-16 17:43:08  INFO      __main__: ==================================================
