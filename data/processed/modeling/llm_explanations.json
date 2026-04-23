@@ -1,0 +1,62 @@
+{
+  "B0036": {
+    "answer": "Battery B0036 shows 1.4% capacity fade (1.7756 Ah; init: 1.8011 Ah; EOL threshold: 1.2608 Ah, margin: 0.5148 Ah). The EOL threshold was first crossed at cycle 47 of 197 observed cycles; current capacity has since recovered above threshold. RUL is predicted at 2 cycles with 90% CI [0, 71] — the CI lower bound of 0 means the model cannot rule out immediate EOL.\n\n13 residual_spike anomalies detected (worst score: 67.2), consistent with formation artifacts rather than acute failure. Survival analysis shows consistently LOW failure risk (peak 4.3% at cycle 27). Flagged contradiction: RUL = 2 yet survival risk is LOW and capacity is currently above EOL threshold — close monitoring is advised. Likely mechanism: SEI layer growth and cathode degradation driving progressive capacity loss.",
+    "sources": [
+      "anomaly_detection_batteries.txt",
+      "li_ion_degradation_mechanisms.txt",
+      "nasa_calce_dataset.txt",
+      "survival_analysis_batteries.txt"
+    ],
+    "generated_at": "2026-04-23T00:00:00"
+  },
+  "B0041": {
+    "answer": "Battery B0041 has a current capacity of 0.8657 Ah. The pipeline's init_capacity (0.0467 Ah from an impedance cycle) produces an unreliable EOL threshold (0.0327 Ah); the EOL cycle label of 67 represents the last observation — the battery never crossed the EOL threshold (censored at dataset end). RUL is predicted at 5 cycles with 90% CI [0, 57]; the CI lower bound of 0 means EOL cannot be ruled out.\n\n4 residual_spike anomalies detected (worst score: 69.2), consistent with early-cycle formation artifacts. Survival analysis shows a peak failure risk of MEDIUM (41.8% at cycle 21), indicating elevated risk earlier in its life. Flagged contradiction: RUL = 5 yet current survival risk is LOW — monitor closely. Likely mechanism: cumulative SEI growth and increasing cell impedance reducing available capacity.",
+    "sources": [
+      "anomaly_detection_batteries.txt",
+      "li_ion_degradation_mechanisms.txt",
+      "nasa_calce_dataset.txt",
+      "survival_analysis_batteries.txt"
+    ],
+    "generated_at": "2026-04-23T00:00:00"
+  },
+  "B0030": {
+    "answer": "Battery B0030 shows 5.2% capacity fade (1.5846 Ah; init: 1.6718 Ah; EOL threshold: 1.1703 Ah, margin: 0.4143 Ah). The EOL cycle label of 40 represents the last observation — the battery never crossed the EOL threshold (censored at dataset end). RUL is predicted at 1 cycle with 90% CI [0, 57]; the CI lower bound of 0 means EOL cannot be ruled out.\n\nNo anomalies detected. Survival analysis shows consistently LOW failure risk throughout its lifetime (peak 10.4% at cycle 20). Flagged contradiction: RUL = 1 yet survival risk is LOW and capacity remains above threshold — close monitoring is advised. Likely mechanism: gradual SEI layer growth increasing internal resistance and driving progressive capacity loss.",
+    "sources": [
+      "anomaly_detection_batteries.txt",
+      "li_ion_degradation_mechanisms.txt",
+      "nasa_calce_dataset.txt",
+      "survival_analysis_batteries.txt"
+    ],
+    "generated_at": "2026-04-23T00:00:00"
+  },
+  "B0033": {
+    "answer": "Battery B0033 has a current capacity of 1.6423 Ah. The pipeline's init_capacity (0.6896 Ah, likely from a non-standard cycle) makes the EOL threshold (0.4827 Ah) unreliable; EOL was reportedly first crossed at cycle 47 of 197 observed cycles. RUL is predicted at 0 cycles with 90% CI [0, 67] — the model considers this battery at or past end-of-life; the CI reflects model uncertainty, not additional usable life.\n\nNo anomalies detected. Survival analysis shows a peak failure risk of MEDIUM (32.7% at cycle 126), confirming elevated risk near end-of-life. Flagged contradiction: RUL = 0 yet current survival model shows LOW — immediate attention required. Likely mechanisms: long-term internal resistance increase and polarization effects consistent with advanced degradation.",
+    "sources": [
+      "anomaly_detection_batteries.txt",
+      "li_ion_degradation_mechanisms.txt",
+      "nasa_calce_dataset.txt",
+      "survival_analysis_batteries.txt"
+    ],
+    "generated_at": "2026-04-23T00:00:00"
+  },
+  "B0044": {
+    "answer": "Battery B0044 has a current capacity of 1.2686 Ah. The pipeline's init_capacity (0.0593 Ah from an impedance cycle) produces an unreliable EOL threshold (0.0415 Ah); EOL was reportedly crossed at cycle 97 of 112 observed cycles, likely triggered by an impedance measurement rather than genuine discharge failure. RUL is predicted at 3 cycles with 90% CI [0, 61]; the CI lower bound of 0 means the model cannot rule out immediate EOL.\n\nNo anomalies detected. Survival analysis shows a peak failure risk of MEDIUM (60.5% at cycle 92), indicating sustained elevated risk during mid-to-late life. Flagged contradiction: RUL = 3 yet current survival model shows LOW — prompt inspection is advised. Likely mechanism: lithium plating and cathode degradation driving irreversible impedance rise.",
+    "sources": [
+      "anomaly_detection_batteries.txt",
+      "li_ion_degradation_mechanisms.txt",
+      "nasa_calce_dataset.txt",
+      "survival_analysis_batteries.txt"
+    ],
+    "generated_at": "2026-04-23T00:00:00"
+  },
+  "B0052": {
+    "answer": "Battery B0052 has no current capacity measurement (NaN — missing data). The EOL threshold (0.9595 Ah; init: 1.3707 Ah) was first crossed at cycle 4 of 25 observed cycles, indicating very rapid early degradation. The model predicts 30 cycles of RUL with 90% CI [0, 108], but this estimate is unreliable — the battery has already operated 21 cycles past its EOL crossing and current capacity is unavailable.\n\n15 residual_spike anomalies detected (worst score: 81.0), consistent with formation artifacts. Survival analysis shows consistently LOW failure risk (peak 0.8% at cycle 3). The wide CI reflects high model uncertainty compounded by missing capacity data. Likely mechanism: rapid early SEI growth causing permanent capacity loss; missing measurements prevent a definitive current assessment.",
+    "sources": [
+      "anomaly_detection_batteries.txt",
+      "li_ion_degradation_mechanisms.txt",
+      "nasa_calce_dataset.txt",
+      "survival_analysis_batteries.txt"
+    ],
+    "generated_at": "2026-04-23T00:00:00"
+  }
+}

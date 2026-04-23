@@ -25,7 +25,9 @@ logger = logging.getLogger(__name__)
 
 # ── Project-relative model paths (resolved at runtime from this file's location)
 _PROJECT_ROOT = Path(__file__).resolve().parents[2]
-_LLM_BASE     = str(_PROJECT_ROOT / "models" / "gemma-3-4b-it")
+# ── Switch model here — comment out the one you don't want ──────────────────
+# _LLM_BASE = str(_PROJECT_ROOT / "models" / "gemma-3-4b-it")        # Gemma 3 4B (smaller, faster)
+_LLM_BASE     = str(_PROJECT_ROOT / "models" / "llama-3.1-8b-instruct")  # Llama 3.1 8B (better instruction following)
 _MINILM_BASE  = str(_PROJECT_ROOT / "models" / "all-MiniLM-L6-v2")
 
 # PDFs inside the project — drop files here, then call reindex()
@@ -46,7 +48,7 @@ def _resolve_snapshot(base_path: str) -> str:
     return base_path
 
 
-def _chunk_text(text: str, chunk_size: int = 200, overlap: int = 30) -> List[str]:
+def _chunk_text(text: str, chunk_size: int = 512, overlap: int = 50) -> List[str]:
     words = text.split()
     chunks: List[str] = []
     for i in range(0, len(words), chunk_size - overlap):
@@ -117,9 +119,8 @@ class BatteryRAG:
         from chromadb.config import Settings
         from sentence_transformers import SentenceTransformer
 
-        emb_source = self._emb_path if Path(self._emb_path).exists() else "all-MiniLM-L6-v2"
-        logger.info("Loading embedding model from %s", emb_source)
-        self._embedder = SentenceTransformer(emb_source)
+        logger.info("Loading embedding model from %s", self._emb_path)
+        self._embedder = SentenceTransformer(self._emb_path)
 
         self._db_path.mkdir(parents=True, exist_ok=True)
         client = chromadb.PersistentClient(
@@ -269,14 +270,12 @@ class BatteryRAG:
             raise RuntimeError(
                 "CUDA not available. "
                 "Reinstall PyTorch with CUDA support:\n"
+                "  pip uninstall torch torchvision torchaudio -y\n"
                 "  pip install torch torchvision torchaudio "
                 "--index-url https://download.pytorch.org/whl/cu124"
             )
 
-        # Use local path if it exists, otherwise fall back to HuggingFace Hub ID
-        llm_source = self._llm_path if Path(self._llm_path).exists() else "google/gemma-3-4b-it"
-        logger.info("Loading LLM from %s", llm_source)
-
+        logger.info("Loading Llama 3.1 8B from %s", self._llm_path)
         from transformers import BitsAndBytesConfig
 
         bnb_config = BitsAndBytesConfig(
@@ -285,16 +284,16 @@ class BatteryRAG:
             bnb_4bit_quant_type="nf4",
             bnb_4bit_compute_dtype=torch.bfloat16,
         )
-        self._tokenizer = AutoTokenizer.from_pretrained(llm_source)
+        self._tokenizer = AutoTokenizer.from_pretrained(self._llm_path)
         self._tokenizer.pad_token = self._tokenizer.eos_token
         self._model = AutoModelForCausalLM.from_pretrained(
-            llm_source,
+            self._llm_path,
             quantization_config=bnb_config,
             device_map={"": 0},
             trust_remote_code=True,
         )
         self._llm_loaded = True
-        logger.info("LLM loaded successfully from %s", llm_source)
+        logger.info("Llama 3.1 8B loaded successfully")
 
     # ── Prompt ────────────────────────────────────────────────────────────────
 
@@ -302,41 +301,39 @@ class BatteryRAG:
         self, query: str, documents: List[str], metadatas: List[dict], extra_context: str = ""
     ) -> str:
         context_parts = [
-            f"[Source {i + 1}: {m.get('source', 'unknown')}]\n{doc}"
-            for i, (doc, m) in enumerate(zip(documents, metadatas))
+            f"[Source: {m.get('source', 'unknown')}]\n{doc}"
+            for doc, m in zip(documents, metadatas)
         ]
         context_text = "\n\n".join(context_parts)
         extra = (
-            f"\n\nBATTERY PIPELINE DATA (actual values for this battery — use these):\n{extra_context}"
-            if extra_context else ""
+            f"\n\nADDITIONAL PIPELINE DATA:\n{extra_context}" if extra_context else ""
         )
         return (
-            "You are a battery degradation analyst. "
-            "Answer using ONLY the reference documents and battery pipeline data provided below.\n\n"
-            "RULES — follow all of them:\n"
-            "1. Use values from BATTERY PIPELINE DATA for this battery's specific numbers. "
-            "Never substitute numbers from reference documents as if they were this battery's values.\n"
-            "2. Use reference documents only for physical interpretation, mechanisms, and context.\n"
-            "3. Cite inline as [Source N] when making a mechanistic claim supported by a document.\n"
-            "4. If the retrieved evidence is insufficient to answer the question, say explicitly: "
-            "'The available evidence does not support a conclusion on this point.' "
-            "Do not fabricate an answer.\n"
-            "5. Do NOT claim specific causal mechanisms (e.g. lithium plating, SEI cracking) "
-            "unless a retrieved source directly supports that diagnosis for this battery's signals.\n"
-            "6. Distinguish model signals (predicted RUL, risk score, anomaly flag) from physical facts.\n"
-            "7. If pipeline data shows contradictory signals (e.g. RUL < 10 but risk = LOW), "
-            "flag the contradiction explicitly.\n"
-            "8. Do NOT recommend prescriptive actions (replace, discard, halt) unless a retrieved "
-            "source explicitly supports that action for this risk level.\n"
-            "9. Answer in 3–5 sentences. Be concise and technical.\n\n"
+            "You are an expert battery degradation analyst. "
+            "Answer using ONLY the reference documents and pipeline data provided.\n\n"
+            "CRITICAL RULES:\n"
+            "A. Numbers in REFERENCE DOCUMENTS (cycle counts, probabilities, scores) are "
+            "ILLUSTRATIVE EXAMPLES from literature — NOT real values for this battery. "
+            "Always use values from ADDITIONAL PIPELINE DATA for the actual battery.\n"
+            "B. If the pipeline data shows contradictory signals "
+            "(e.g. RUL < 10 cycles but risk = LOW), flag the contradiction explicitly.\n"
+            "C. If a value is missing from pipeline data, say 'not available' — "
+            "do not substitute values from reference documents.\n\n"
             f"REFERENCE DOCUMENTS:\n{context_text}{extra}\n\n"
             f"QUESTION: {query}\n\n"
+            "INSTRUCTIONS:\n"
+            "1. Ground every claim in the PIPELINE DATA for this specific battery.\n"
+            "2. Use reference documents only for physical interpretation (mechanisms, context).\n"
+            "3. Be concise and technical — the reader is an engineer or researcher.\n"
+            "4. Cite which document supports each mechanistic claim.\n"
+            "5. Flag any contradictions or out-of-distribution signals explicitly.\n"
+            "6. Write exactly TWO short paragraphs. No headers, no bullet points. Maximum 150 words total.\n\n"
             "ANSWER:"
         )
 
     # ── Generation ────────────────────────────────────────────────────────────
 
-    def generate_answer(self, prompt: str, max_new_tokens: int = 180) -> str:
+    def generate_answer(self, prompt: str, max_new_tokens: int = 600) -> str:
         import torch
 
         self._load_llm()
@@ -345,7 +342,7 @@ class BatteryRAG:
             prompt,
             return_tensors="pt",
             truncation=True,
-            max_length=2048,
+            max_length=4096,
             padding=True,
         ).to(device)
 
@@ -353,7 +350,9 @@ class BatteryRAG:
             outputs = self._model.generate(
                 **inputs,
                 max_new_tokens=max_new_tokens,
-                do_sample=False,
+                temperature=0.3,
+                do_sample=True,
+                top_p=0.9,
                 pad_token_id=self._tokenizer.eos_token_id,
                 repetition_penalty=1.1,
             )

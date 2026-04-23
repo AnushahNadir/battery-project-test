@@ -217,6 +217,9 @@ data/raw/*
 data/processed/*
 !data/raw/.gitkeep
 !data/processed/.gitkeep
+!data/processed/modeling/
+data/processed/modeling/*
+!data/processed/modeling/llm_explanations.json
 
 # ChromaDB vector index — generated locally on first run
 data/vector_db/
@@ -242,7 +245,6 @@ __pycache__/
 
 
 outputs/
-data/processed/
 __pycache__/
 .venv/
 *.pyc
