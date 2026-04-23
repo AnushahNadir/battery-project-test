@@ -8,14 +8,14 @@ import pandas as pd
 import streamlit as st
 
 st.set_page_config(
-    page_title="Battery AI Co-Scientist",
+    page_title="Lithium-ion Battery Remaining Useful Life Prediction",
     page_icon="🔋",
     layout="wide",
     initial_sidebar_state="expanded",
 )
 
 # ── paths ─────────────────────────────────────────────────────────────────────
-BASE = Path(".").resolve()
+BASE = Path(__file__).resolve().parent.parent
 MDL  = BASE / "data/processed/modeling"
 TM   = BASE / "trained_models"
 
@@ -86,7 +86,10 @@ def bat_label(b):
     return f"{tag} {b}"
 
 label_map   = {bat_label(b): b for b in battery_ids}
-sel_label   = st.sidebar.selectbox("", list(label_map.keys()), label_visibility="collapsed")
+if not label_map:
+    st.error(f"No battery data found. Expected: {BASE / 'data/processed/cycle_features_with_rul.csv'}")
+    st.stop()
+sel_label   = st.sidebar.selectbox("Battery", list(label_map.keys()), label_visibility="collapsed")
 selected    = label_map[sel_label]
 grp         = temp_group(selected)
 bat_role, role_color = role(selected)
@@ -352,8 +355,72 @@ if view == "Battery Report":
     st.markdown("---")
 
     # ── AI EXPLANATION (Local RAG) ────────────────────────────────────────────
-    st.subheader("AI Explanation")
-    st.caption("Grounded in domain knowledge — synthesizes RUL, risk and anomalies into one summary.")
+    st.subheader("Battery Health Summary")
+
+    def _fast_summary(battery_id, df_bat, u_bat, s_bat, a_bat):
+        """Build a grounded 4-sentence summary directly from pipeline data. No LLM needed."""
+        sentences = []
+
+        # 1. Degradation state
+        if not df_bat.empty:
+            last      = df_bat.iloc[-1]
+            cap       = float(last["capacity"])
+            init_cap  = float(last.get("init_capacity", cap))
+            eol_thr   = float(last.get("eol_capacity_threshold", init_cap * 0.8))
+            pct       = cap / init_cap * 100 if init_cap > 0 else 0
+            margin    = cap - eol_thr
+            state     = "near end-of-life" if margin < 0.05 else ("mid-life" if pct > 85 else "late-life")
+            sentences.append(
+                f"Battery **{battery_id}** is in **{state}** with capacity {cap:.3f} Ah "
+                f"({pct:.1f}% of initial {init_cap:.3f} Ah), "
+                f"{margin:.3f} Ah above the {eol_thr:.3f} Ah end-of-life threshold."
+            )
+
+        # 2. RUL estimate
+        if not u_bat.empty and RUL_COL and RUL_COL in u_bat.columns:
+            rul = float(u_bat[RUL_COL].iloc[-1])
+            if has_bands:
+                lo  = float(u_bat["rul_lower_5"].iloc[-1])
+                hi  = float(u_bat["rul_upper_95"].iloc[-1])
+                ci  = f" (90% confidence interval: {lo:.0f}–{hi:.0f} cycles)"
+            else:
+                ci = ""
+            if rul <= 0:
+                sentences.append(
+                    f"The model estimates RUL at **{rul:.0f} cycles** — the battery has reached or passed end-of-life{ci}."
+                )
+            else:
+                sentences.append(
+                    f"The ensemble model estimates **{rul:.0f} cycles remaining**{ci}."
+                )
+
+        # 3. Failure risk
+        if not s_bat.empty and "failure_prob_horizon" in s_bat.columns:
+            fp = float(s_bat["failure_prob_horizon"].iloc[-1])
+            rc = str(s_bat["risk_category"].iloc[-1]) if "risk_category" in s_bat.columns else "UNKNOWN"
+            color = {"HIGH": "🔴", "MEDIUM": "🟡", "LOW": "🟢"}.get(rc, "⚪")
+            sentences.append(
+                f"{color} Failure risk is **{rc}** — {fp*100:.1f}% probability of reaching end-of-life "
+                f"within the next 20 cycles (model-derived, not causal)."
+            )
+
+        # 4. Anomalies
+        if not a_bat.empty:
+            n     = len(a_bat)
+            worst = float(a_bat["anomaly_score"].max()) if "anomaly_score" in a_bat.columns else 0
+            early = a_bat[a_bat["cycle_index"] <= 30] if "cycle_index" in a_bat.columns else a_bat
+            note  = (
+                " Most anomalies are in early cycles (formation phase) and are typically non-critical."
+                if len(early) >= n * 0.6 else
+                " Anomalies are spread across the cycle life — review mid/late-life spikes."
+            )
+            sentences.append(
+                f"**{n} anomalous cycle(s)** detected (worst residual score: {worst:.1f}).{note}"
+            )
+        else:
+            sentences.append("**No anomalies detected** — degradation trajectory is within model expectations.")
+
+        return " ".join(sentences)
 
     @st.cache_resource
     def _load_explainer():
@@ -369,129 +436,44 @@ if view == "Battery Report":
                     explainer = _load_explainer()
                     ctx = []
 
-                    # ── 1. Latest cycle measurements ──────────────────────────
                     if not df_b.empty:
                         last = df_b.iloc[-1]
                         ctx.append(
-                            f"LATEST CYCLE ({int(last['cycle_index'])}):\n"
-                            f"  Capacity: {last['capacity']:.4f} Ah "
-                            f"(initial: {last['init_capacity']:.4f} Ah, "
-                            f"EOL threshold: {last['eol_capacity_threshold']:.4f} Ah)\n"
-                            f"  Temp mean/max: {last['temp_mean']:.1f} / {last['temp_max']:.1f} °C\n"
-                            f"  Voltage mean/min: {last['v_mean']:.3f} / {last['v_min']:.3f} V\n"
-                            f"  Current min: {last['i_min']:.4f} A\n"
-                            f"  Energy: {last['energy_j']:.0f} J\n"
-                            f"  True RUL at this cycle: {int(last['RUL'])} cycles"
+                            f"battery_id={selected}, cycle={int(last['cycle_index'])}, "
+                            f"capacity={float(last['capacity']):.3f}, "
+                            f"init_capacity={float(last.get('init_capacity', 0)):.3f}, "
+                            f"eol_threshold={float(last.get('eol_capacity_threshold', 0)):.3f}, "
+                            f"temp_mean={float(last.get('temp_mean', 0)):.1f}, "
+                            f"v_min={float(last.get('v_min', 0)):.3f}, "
+                            f"energy_j={float(last.get('energy_j', 0)):.0f}"
                         )
 
-                    # ── 2. RUL prediction + uncertainty (per-battery) ────────
-                    if latest_rul is not None and not u_b.empty:
-                        lo = float(u_b["rul_lower_5"].iloc[-1]) if has_bands else None
-                        hi = float(u_b["rul_upper_95"].iloc[-1]) if has_bands else None
-                        if lo is not None and hi is not None:
-                            width = hi - lo
-                            interval = (
-                                f" | 90% CI for THIS battery: [{lo:.0f}, {hi:.0f}] "
-                                f"(CI width = {width:.0f} cycles)"
+                    if not u_b.empty and RUL_COL and RUL_COL in u_b.columns:
+                        rul = float(u_b[RUL_COL].iloc[-1])
+                        ctx.append(f"rul_ensemble={rul:.0f}")
+                        if has_bands:
+                            ctx.append(
+                                f"rul_lower={float(u_b['rul_lower_5'].iloc[-1]):.0f}, "
+                                f"rul_upper={float(u_b['rul_upper_95'].iloc[-1]):.0f}"
                             )
-                        else:
-                            interval = ""
-                        if latest_rul <= 0:
-                            rul_note = (
-                                f" WARNING: RUL <= 0 means this battery has ALREADY "
-                                f"reached or passed its end-of-life threshold. "
-                                f"Do NOT interpret the CI upper bound as remaining cycles — "
-                                f"the battery should be treated as at end-of-life NOW. "
-                                f"The CI reflects model uncertainty, not additional life."
-                            )
-                        else:
-                            rul_note = ""
-                        ctx.append(f"RUL PREDICTION: {latest_rul} cycles{interval}{rul_note}")
 
-                    # ── 3. Failure risk ───────────────────────────────────────
                     if not s_b.empty and "failure_prob_horizon" in s_b.columns:
-                        last_s = s_b.iloc[-1]
-                        fp  = float(last_s["failure_prob_horizon"])
-                        rc  = str(last_s.get("risk_category", "UNKNOWN"))
-                        ctx.append(f"FAILURE RISK (next 20 cycles): {fp*100:.1f}% — {rc}")
+                        fp = float(s_b["failure_prob_horizon"].iloc[-1])
+                        rc = str(s_b["risk_category"].iloc[-1]) if "risk_category" in s_b.columns else "UNKNOWN"
+                        ctx.append(f"failure_prob_horizon={fp:.3f}, risk_category={rc}")
 
-                    # ── 4. Anomalies ──────────────────────────────────────────
                     if not a_b.empty:
-                        types = (
-                            ", ".join(sorted(a_b["anomaly_type"].unique()))
-                            if "anomaly_type" in a_b.columns else "unknown"
-                        )
-                        scores = a_b["anomaly_score"].astype(float) if "anomaly_score" in a_b.columns else None
-                        worst  = f" | worst score: {scores.max():.1f}" if scores is not None else ""
-                        ctx.append(f"ANOMALIES: {len(a_b)} anomalous cycles — types: {types}{worst}")
+                        ctx.append(f"anomaly_count={len(a_b)}, anomaly_worst_score={float(a_b['anomaly_score'].max()):.1f}")
                     else:
-                        ctx.append("ANOMALIES: none detected")
+                        ctx.append("anomaly_count=0")
 
-                    # ── 5. Top feature importances ────────────────────────────
-                    if feat_imp:
-                        top5 = feat_imp[:5]
-                        fi_lines = "  |  ".join(
-                            f"{f['feature']} {f['importance']*100:.1f}% ({f.get('direction','')})"
-                            for f in top5
-                        )
-                        ctx.append(f"TOP PREDICTIVE FEATURES: {fi_lines}")
-
-                    # ── 6. Degradation hypotheses ─────────────────────────────
-                    if hypotheses:
-                        hyp_lines = "\n".join(
-                            f"  - {h['hypothesis_text']} "
-                            f"[confidence: {h.get('confidence', 0):.2f}]"
-                            for h in hypotheses[:4]
-                        )
-                        ctx.append(f"DEGRADATION HYPOTHESES (model-derived):\n{hyp_lines}")
-
-                    # ── 7. Counterfactuals for this battery ───────────────────
-                    bat_cf = [
-                        c for c in counterfact
-                        if str(c.get("observation_id", "")).startswith(selected)
-                    ]
-                    if bat_cf:
-                        cf_lines = "\n".join(
-                            f"  - If {c['counterfactual']['feature_changed']} changed "
-                            f"from {c['counterfactual']['original_value']:.3f} to "
-                            f"{c['counterfactual']['counterfactual_value']:.3f} → "
-                            f"RUL would change by {c['counterfactual']['predicted_rul_change']:+.1f} cycles"
-                            for c in bat_cf[:3]
-                        )
-                        ctx.append(f"COUNTERFACTUAL WHAT-IFS:\n{cf_lines}")
-
-                    # ── 8. Drift alerts ───────────────────────────────────────
-                    if drift:
-                        alerts = drift.get("alerts", [])
-                        status = drift.get("overall_status", "unknown")
-                        ctx.append(
-                            f"DATA DRIFT: overall status = {status}"
-                            + (f" | alerts: {', '.join(alerts)}" if alerts else "")
-                        )
-
-                    # ── 9. Model calibration (global stats, NOT per-battery) ──
-                    if unc_metrics:
-                        ctx.append(
-                            f"MODEL CALIBRATION (global across all test batteries, "
-                            f"NOT specific to battery {selected}): "
-                            f"calibration score = {unc_metrics.get('calibration_score', 0):.3f} | "
-                            f"empirical 90% coverage = {unc_metrics.get('coverage_90_percent', 0):.1f}% | "
-                            f"average CI width across all test batteries = "
-                            f"{unc_metrics.get('mean_uncertainty_width', 0):.1f} cycles"
-                        )
-
-                    extra_context = "\n\n".join(ctx)
-                    query = (
-                        f"Provide a concise but complete health summary for battery {selected}. "
-                        f"Using all the pipeline data provided, explain: "
-                        f"(1) the current degradation state based on capacity and measurements, "
-                        f"(2) what the RUL estimate and uncertainty mean physically, "
-                        f"(3) the failure risk level and operational implications, "
-                        f"(4) whether anomalies are concerning or expected given the degradation stage, "
-                        f"(5) which physical mechanisms are most likely driving the observed behavior."
+                    answer, sources = explainer._rag.explain(
+                        f"Summarise the health of battery {selected} in 4 sentences: "
+                        f"current degradation state, RUL estimate, failure risk level, "
+                        f"and whether anomalies are concerning.",
+                        extra_context=", ".join(ctx),
+                        top_k=3,
                     )
-
-                    answer, sources = explainer._rag.explain(query, extra_context=extra_context)
 
                     if answer:
                         st.markdown(
@@ -549,7 +531,7 @@ if view == "Battery Report":
 # PROJECT SUMMARY — overall results
 # ══════════════════════════════════════════════════════════════════════════════
 else:
-    st.title("Project Summary — Battery AI Co-Scientist")
+    st.title("Project Summary — Lithium-ion Battery Remaining Useful Life Prediction")
 
     # Verdict
     verdict_line = ""

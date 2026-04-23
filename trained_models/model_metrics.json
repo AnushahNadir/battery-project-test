@@ -1,42 +1,40 @@
 {
-  "rmse": 25.735265029668977,
-  "mae": 15.499151993522915,
-  "trajectory_shape_error": 0.01608178437923813,
-  "battery_generalization_score": 19.572238362718377,
+  "rmse": 22.406940178271718,
+  "mae": 13.278800731995231,
+  "trajectory_shape_error": 0.30135442675108903,
+  "battery_generalization_score": 20.05629151388855,
   "per_battery_rmse": {
-    "B0030": 3.0960965572165344,
-    "B0036": 41.078608787110554,
-    "B0041": 34.37022693136035,
-    "B0044": 8.810332400061544,
-    "B0052": 65.56107077948262,
-    "CS2_35": 19.775624582955544,
-    "CS2_38": 26.00190878207718
+    "B0030": 1.9901938752675032,
+    "B0033": 5.1383202166472115,
+    "B0036": 29.04978507470792,
+    "B0041": 26.01928177115647,
+    "B0044": 9.748772004603623,
+    "B0052": 60.8972017495315
   },
   "feature_importance": {
-    "capacity": 0.0240459144115448,
-    "cycle_index": 0.2417878806591034,
-    "temp_mean": 0.014144930988550186,
-    "temp_max": 0.011008231900632381,
-    "v_mean": 0.20787310600280762,
-    "i_mean": 0.04690846428275108,
-    "i_min": 0.0967889130115509,
-    "energy_j": 0.1331115961074829,
-    "ah_est": 0.19122005999088287,
-    "duration_s": 0.03311096131801605
+    "capacity": 0.03970823809504509,
+    "cycle_index": 0.07631935179233551,
+    "temp_mean": 0.11051415652036667,
+    "temp_max": 0.07223910093307495,
+    "v_mean": 0.12217138707637787,
+    "i_mean": 0.08744772523641586,
+    "i_min": 0.19727762043476105,
+    "energy_j": 0.14399749040603638,
+    "ah_est": 0.054119598120450974,
+    "duration_s": 0.09620539098978043
   },
-  "baseline_rmse": 130.16825602875107,
+  "baseline_rmse": 466.82011074233753,
   "dl_sequence": {
-    "rmse": 27.105417972699083,
-    "mae": 18.00129096494091,
-    "battery_generalization_score": 27.04586935030551,
+    "rmse": 22.94721941206336,
+    "mae": 13.619540362586749,
+    "battery_generalization_score": 13.526471998101167,
     "per_battery_rmse": {
-      "B0030": 13.050992420714405,
-      "B0036": 45.706396266242116,
-      "B0041": 16.13848693831932,
-      "B0044": 18.479950619675325,
-      "B0052": 47.21884968771128,
-      "CS2_35": 19.68000217348262,
-      "CS2_38": 29.046407345993508
+      "B0030": 2.3883050241628205,
+      "B0033": 2.1309946847994325,
+      "B0036": 38.465246597627804,
+      "B0041": 19.936084139465628,
+      "B0044": 11.841073485680402,
+      "B0052": 6.397128056870926
     },
     "backend": "torch_tcn",
     "sequence_length": 8,
@@ -46,110 +44,108 @@
     "strategy": "GroupKFold(groups=battery_id)",
     "group_column": "battery_id",
     "n_splits": 5,
-    "n_batteries": 25,
-    "mean_rmse": 50.14068650944613,
-    "std_rmse": 9.478414365910401,
-    "mean_mae": 33.53130616227355,
-    "std_mae": 4.796372519270363,
+    "n_batteries": 22,
+    "mean_rmse": 48.345840142396966,
+    "std_rmse": 15.946935250945943,
+    "mean_mae": 35.33272505804134,
+    "std_mae": 13.029275995156256,
     "folds": [
       {
         "fold_index": 1,
-        "n_train_rows": 2963,
-        "n_val_rows": 986,
-        "n_train_batteries": 24,
-        "n_val_batteries": 1,
-        "rmse": 68.14762507699109,
-        "mae": 42.81788851887802
+        "n_train_rows": 1424,
+        "n_val_rows": 352,
+        "n_train_batteries": 18,
+        "n_val_batteries": 4,
+        "rmse": 28.742944728539385,
+        "mae": 22.368620741165202
       },
       {
         "fold_index": 2,
-        "n_train_rows": 3040,
-        "n_val_rows": 909,
-        "n_train_batteries": 24,
-        "n_val_batteries": 1,
-        "rmse": 50.812979971538056,
-        "mae": 31.74373936150387
+        "n_train_rows": 1407,
+        "n_val_rows": 369,
+        "n_train_batteries": 17,
+        "n_val_batteries": 5,
+        "rmse": 49.769107894173004,
+        "mae": 34.8788827860319
       },
       {
         "fold_index": 3,
-        "n_train_rows": 3275,
-        "n_val_rows": 674,
+        "n_train_rows": 1431,
+        "n_val_rows": 345,
         "n_train_batteries": 18,
-        "n_val_batteries": 7,
-        "rmse": 46.238280158636236,
-        "mae": 32.78761257788509
+        "n_val_batteries": 4,
+        "rmse": 70.8589174060369,
+        "mae": 55.84561633657718
       },
       {
         "fold_index": 4,
-        "n_train_rows": 3260,
-        "n_val_rows": 689,
-        "n_train_batteries": 17,
-        "n_val_batteries": 8,
-        "rmse": 42.53569171451529,
-        "mae": 31.207132757975753
+        "n_train_rows": 1426,
+        "n_val_rows": 350,
+        "n_train_batteries": 18,
+        "n_val_batteries": 4,
+        "rmse": 59.76212824719551,
+        "mae": 42.615496536958965
       },
       {
         "fold_index": 5,
-        "n_train_rows": 3258,
-        "n_val_rows": 691,
+        "n_train_rows": 1416,
+        "n_val_rows": 360,
         "n_train_batteries": 17,
-        "n_val_batteries": 8,
-        "rmse": 42.968855625549956,
-        "mae": 29.10015759512502
+        "n_val_batteries": 5,
+        "rmse": 32.59610243604003,
+        "mae": 20.955008889473458
       }
     ]
   },
   "drift_report": {
     "overall_status": "RED",
-    "n_alerts": 7,
+    "n_alerts": 5,
     "alerts": [
-      "temp_mean PSI=0.872 exceeds red threshold 0.20",
-      "temp_max PSI=1.961 exceeds red threshold 0.20",
-      "v_min PSI=2.322 exceeds red threshold 0.20",
-      "v_mean PSI=0.734 exceeds red threshold 0.20",
-      "i_mean PSI=2.806 exceeds red threshold 0.20",
-      "i_min PSI=4.547 exceeds red threshold 0.20",
-      "duration_s PSI=0.202 exceeds red threshold 0.20"
+      "temp_mean PSI=1.010 exceeds red threshold 0.20",
+      "temp_max PSI=2.462 exceeds red threshold 0.20",
+      "v_mean PSI=2.077 exceeds red threshold 0.20",
+      "i_mean PSI=2.573 exceeds red threshold 0.20",
+      "duration_s PSI=1.814 exceeds red threshold 0.20"
     ],
     "per_feature_psi": {
       "temp_mean": {
-        "psi": 0.872,
+        "psi": 1.0104,
         "status": "RED"
       },
       "temp_max": {
-        "psi": 1.9613,
+        "psi": 2.4619,
         "status": "RED"
       },
       "v_min": {
-        "psi": 2.3221,
-        "status": "RED"
+        "psi": 0.0,
+        "status": "GREEN"
       },
       "v_mean": {
-        "psi": 0.7341,
+        "psi": 2.0766,
         "status": "RED"
       },
       "i_mean": {
-        "psi": 2.8058,
+        "psi": 2.5729,
         "status": "RED"
       },
       "i_min": {
-        "psi": 4.5468,
-        "status": "RED"
+        "psi": 0.0037,
+        "status": "GREEN"
       },
       "duration_s": {
-        "psi": 0.2017,
+        "psi": 1.8144,
         "status": "RED"
       },
       "capacity": {
-        "psi": 0.7141,
+        "psi": 0.9143,
         "status": "RED"
       },
       "ah_est": {
-        "psi": 0.6581,
+        "psi": 0.8758,
         "status": "RED"
       },
       "energy_j": {
-        "psi": 0.2087,
+        "psi": 0.8735,
         "status": "RED"
       }
     },
@@ -175,7 +171,6 @@
       "B0029",
       "B0031",
       "B0032",
-      "B0033",
       "B0034",
       "B0038",
       "B0039",
@@ -192,61 +187,55 @@
       "B0053",
       "B0054",
       "B0055",
-      "B0056",
-      "CS2_36",
-      "CS2_37"
+      "B0056"
     ],
     "actual_train_batteries": [
       "B0005",
       "B0006",
       "B0007",
-      "B0018",
       "B0025",
-      "B0027",
+      "B0026",
+      "B0028",
       "B0029",
+      "B0031",
       "B0032",
-      "B0033",
       "B0034",
-      "B0038",
       "B0039",
       "B0040",
       "B0042",
       "B0043",
-      "B0045",
       "B0046",
       "B0047",
       "B0049",
       "B0051",
       "B0053",
+      "B0054",
       "B0055",
-      "B0056",
-      "CS2_36",
-      "CS2_37"
+      "B0056"
     ],
     "cal_batteries": [
-      "B0026",
-      "B0028",
-      "B0031",
+      "B0018",
+      "B0027",
+      "B0038",
+      "B0045",
       "B0048",
-      "B0050",
-      "B0054"
+      "B0050"
     ],
     "test_batteries": [
       "B0030",
+      "B0033",
       "B0036",
       "B0041",
       "B0044",
-      "B0052",
-      "CS2_35",
-      "CS2_38"
+      "B0052"
     ],
     "train_temp_mix": {
-      "room": 12,
+      "room": 9,
       "hot": 6,
       "cold": 13
     },
     "actual_train_temp_mix": {
-      "room": 10,
+      "room": 7,
       "hot": 5,
       "cold": 10
     },
@@ -256,7 +245,7 @@
       "cold": 3
     },
     "test_temp_mix": {
-      "room": 3,
+      "room": 2,
       "hot": 1,
       "cold": 3
     },
@@ -273,22 +262,23 @@
         "B0056"
       ],
       "capacity_floor_factor": 0.5,
-      "global_threshold": 0.5231865901091624,
+      "global_threshold": 0.49502261534553604,
       "per_battery_thresholds": {
         "B0049": 0.41848071474103526,
         "B0051": 0.4012859732493937,
         "B0053": 0.5231865901091624,
+        "B0054": 0.4668586405819098,
         "B0055": 0.5300946861681374,
         "B0056": 0.5870194294755783
       },
-      "train_rows_removed": 3,
-      "cal_rows_flagged_only": 8,
+      "train_rows_removed": 4,
+      "cal_rows_flagged_only": 7,
       "test_rows_flagged_only": 0
     },
     "uncertainty_weights": {
       "stat": 0.0,
-      "ml": 0.5129649435357289,
-      "dl": 0.48703505646427103
+      "ml": 0.5059562258310126,
+      "dl": 0.4940437741689874
     },
     "conformal_coverage_target": 0.9
   }

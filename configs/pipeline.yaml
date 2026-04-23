@@ -89,7 +89,7 @@ anomaly:
 
 survival:
   horizon_cycles: 20
-  method: kaplan_meier
+  method: cox_ph
 
 hostile:
   low_conf_threshold: 0.50
