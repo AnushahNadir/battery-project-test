@@ -30,7 +30,7 @@ xgboost:
   quantile_alphas: [0.05, 0.50, 0.95]
 
 conformal:
-  coverage: 0.90
+  coverage: 0.80
   min_cal_batteries: 2
   safety_factor: 1.20
   lobo_groups:

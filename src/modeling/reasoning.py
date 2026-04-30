@@ -161,9 +161,11 @@ class ReasoningEngine:
 
         except Exception as e:
             logger.info(f"Using model feature importance ({e})")
-            importance = {
-                k: float(v) for k, v in self.ml_model.feature_importance_.items()
-            }
+            if hasattr(self.ml_model, "feature_importance_") and isinstance(self.ml_model.feature_importance_, dict):
+                importance = {k: float(v) for k, v in self.ml_model.feature_importance_.items()}
+            else:
+                raw_imp = self.ml_model.feature_importances_
+                importance = {col: float(raw_imp[i]) for i, col in enumerate(self.feature_columns)}
             directions = {k: "negative" for k in importance}
 
         results: List[FeatureImportance] = []
@@ -281,7 +283,7 @@ class ReasoningEngine:
                 if obs_id in used_observations:
                     continue
 
-                base_pred = float(self.ml_model.predict(df.iloc[[idx]])[0])
+                base_pred = float(self.ml_model.predict(X.iloc[[idx]])[0])
                 orig_val = float(X.iloc[idx][feature])
                 if not np.isfinite(orig_val):
                     continue
@@ -310,7 +312,7 @@ class ReasoningEngine:
                     if feature in {"v_min", "i_min"} and abs(new_val - orig_val) < 0.005:
                         continue
 
-                    df_pert = df.iloc[[idx]].copy()
+                    df_pert = X.iloc[[idx]].copy()
                     df_pert[feature] = new_val
 
                     new_pred = float(self.ml_model.predict(df_pert)[0])
@@ -373,7 +375,7 @@ class ReasoningEngine:
                 if not np.isfinite(orig_val):
                     continue
 
-                base_pred = float(self.ml_model.predict(df.iloc[[idx]])[0])
+                base_pred = float(self.ml_model.predict(X.iloc[[idx]])[0])
                 best_any: Optional[tuple[float, float, float, bool]] = None
                 for p in perturbations:
                     if feature == "cycle_index":
@@ -392,7 +394,7 @@ class ReasoningEngine:
                     if feature in {"v_min", "i_min"} and abs(new_val - orig_val) < 0.005:
                         continue
 
-                    df_pert = df.iloc[[idx]].copy()
+                    df_pert = X.iloc[[idx]].copy()
                     df_pert[feature] = new_val
                     new_pred = float(self.ml_model.predict(df_pert)[0])
                     delta = new_pred - base_pred
@@ -471,7 +473,11 @@ def run_reasoning_analysis(
 
     importances = engine.compute_feature_importance(df)
     hypotheses = engine.generate_hypotheses()
-    counterfactuals = engine.generate_counterfactuals(df)
+
+    # Generate per-battery so all test batteries are represented
+    counterfactuals = []
+    for bat_id, bat_df in df.groupby("battery_id"):
+        counterfactuals.extend(engine.generate_counterfactuals(bat_df, n_examples=2))
 
     (output_dir / "feature_importance.json").write_text(
         json.dumps([i.to_dict() for i in importances], indent=2),

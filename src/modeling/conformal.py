@@ -30,6 +30,166 @@ from src.config import get_config
 logger = logging.getLogger(__name__)
 
 
+class BootstrapCalibrator:
+    """
+    Non-parametric bootstrap confidence intervals for RUL predictions.
+
+    Resamples calibration residuals (e = true - predicted) 1000 times to
+    estimate the 5th/95th percentile of the error distribution without
+    assuming a parametric form.  Produces asymmetric, typically narrower
+    intervals than split-conformal prediction.
+    """
+
+    def __init__(self, coverage: float = 0.90, n_bootstrap: int = 1000):
+        self.coverage = coverage
+        self.n_bootstrap = n_bootstrap
+        self.q_low: float = 0.0   # typically negative (model overestimates)
+        self.q_high: float = 0.0  # typically positive (model underestimates)
+        self._fitted = False
+
+    def fit(self, y_true: np.ndarray, y_pred: np.ndarray) -> "BootstrapCalibrator":
+        residuals = np.asarray(y_true, dtype=float) - np.asarray(y_pred, dtype=float)
+        residuals = residuals[np.isfinite(residuals)]
+        alpha = 1.0 - self.coverage
+        rng = np.random.default_rng(42)
+        q_lows, q_highs = [], []
+        for _ in range(self.n_bootstrap):
+            sample = rng.choice(residuals, size=len(residuals), replace=True)
+            q_lows.append(float(np.percentile(sample, alpha / 2 * 100)))
+            q_highs.append(float(np.percentile(sample, (1 - alpha / 2) * 100)))
+        self.q_low = float(np.mean(q_lows))
+        self.q_high = float(np.mean(q_highs))
+        self._fitted = True
+        logger.info(
+            f"[Bootstrap CI] coverage={self.coverage:.0%}  "
+            f"q_low={self.q_low:.2f}  q_high={self.q_high:.2f}  "
+            f"width={self.q_high - self.q_low:.2f}  n={len(residuals)}"
+        )
+        return self
+
+    def predict_interval(self, pred: float) -> tuple[float, float]:
+        lower = max(0.0, pred + self.q_low)
+        upper = max(lower, pred + self.q_high)
+        return lower, upper
+
+    def predict_intervals(self, preds: np.ndarray) -> tuple[np.ndarray, np.ndarray]:
+        lowers = np.maximum(0.0, preds + self.q_low)
+        uppers = np.maximum(lowers, preds + self.q_high)
+        return lowers, uppers
+
+    def save(self, path: Path) -> None:
+        path = Path(path)
+        path.write_text(
+            json.dumps({
+                "coverage": self.coverage,
+                "n_bootstrap": self.n_bootstrap,
+                "q_low": self.q_low,
+                "q_high": self.q_high,
+                "interval_width": self.q_high - self.q_low,
+            }, indent=2),
+            encoding="utf-8",
+        )
+
+    @classmethod
+    def load(cls, path: Path) -> "BootstrapCalibrator":
+        data = json.loads(Path(path).read_text(encoding="utf-8"))
+        obj = cls(coverage=float(data["coverage"]), n_bootstrap=int(data["n_bootstrap"]))
+        obj.q_low = float(data["q_low"])
+        obj.q_high = float(data["q_high"])
+        obj._fitted = True
+        return obj
+
+
+class AdaptiveConformalCalibrator:
+    """
+    Cycle-dependent asymmetric confidence intervals.
+
+    Instead of a single fixed ±q_hat, residuals are binned by predicted RUL
+    so the band is tight near end-of-life and wider early in battery life —
+    matching the actual uncertainty structure observed in calibration data.
+
+    Uses signed residuals (true - predicted) so the interval is asymmetric:
+    if the model consistently over-predicts, the band shifts downward rather
+    than being symmetrically centered on the prediction.
+    """
+
+    # RUL bins: (upper_bound_exclusive, label)
+    BINS = [(20, "low"), (60, "mid"), (float("inf"), "high")]
+
+    def __init__(self, coverage: float = 0.90):
+        self.coverage = coverage
+        # per-bin: {label: (q_low, q_high)}
+        self._bin_quantiles: dict[str, tuple[float, float]] = {}
+        self._global_q_low: float = 0.0
+        self._global_q_high: float = 0.0
+        self._fitted = False
+
+    def _get_bin(self, pred_rul: float) -> str:
+        for upper, label in self.BINS:
+            if pred_rul < upper:
+                return label
+        return "high"
+
+    def fit(self, y_true: np.ndarray, y_pred: np.ndarray) -> "AdaptiveConformalCalibrator":
+        alpha = 1.0 - self.coverage
+        signed = np.asarray(y_true, dtype=float) - np.asarray(y_pred, dtype=float)
+        signed = signed[np.isfinite(signed)]
+        preds  = np.asarray(y_pred, dtype=float)
+
+        q_lo_pct = alpha / 2 * 100        # 5th percentile
+        q_hi_pct = (1 - alpha / 2) * 100  # 95th percentile
+
+        # Global fallback
+        self._global_q_low  = float(np.percentile(signed, q_lo_pct))
+        self._global_q_high = float(np.percentile(signed, q_hi_pct))
+
+        for upper, label in self.BINS:
+            prev = self.BINS[self.BINS.index((upper, label)) - 1][0] if self.BINS.index((upper, label)) > 0 else 0
+            mask = (preds >= prev) & (preds < upper)
+            r = signed[mask]
+            if len(r) >= 10:
+                ql = float(np.percentile(r, q_lo_pct))
+                qh = float(np.percentile(r, q_hi_pct))
+            else:
+                logger.warning(f"[AdaptiveConformal] bin '{label}' has only {len(r)} samples, using global fallback.")
+                ql, qh = self._global_q_low, self._global_q_high
+            self._bin_quantiles[label] = (ql, qh)
+            logger.info(
+                f"[AdaptiveConformal] bin={label:4s}  n={len(r):4d}  "
+                f"q_low={ql:.1f}  q_high={qh:.1f}  width={qh-ql:.1f}"
+            )
+        self._fitted = True
+        return self
+
+    def predict_interval(self, pred: float) -> tuple[float, float]:
+        label = self._get_bin(pred)
+        q_low, q_high = self._bin_quantiles.get(label, (self._global_q_low, self._global_q_high))
+        lower = max(0.0, pred + q_low)
+        upper = max(lower, pred + q_high)
+        return lower, upper
+
+    def save(self, path: Path) -> None:
+        Path(path).write_text(
+            json.dumps({
+                "coverage": self.coverage,
+                "global_q_low": self._global_q_low,
+                "global_q_high": self._global_q_high,
+                "bin_quantiles": self._bin_quantiles,
+            }, indent=2),
+            encoding="utf-8",
+        )
+
+    @classmethod
+    def load(cls, path: Path) -> "AdaptiveConformalCalibrator":
+        data = json.loads(Path(path).read_text(encoding="utf-8"))
+        obj = cls(coverage=float(data["coverage"]))
+        obj._global_q_low  = float(data["global_q_low"])
+        obj._global_q_high = float(data["global_q_high"])
+        obj._bin_quantiles = {k: (float(v[0]), float(v[1])) for k, v in data["bin_quantiles"].items()}
+        obj._fitted = True
+        return obj
+
+
 _BATTERY_TEMP_GROUP: dict[str, str] = {
     **{f"B00{n:02d}": "room" for n in [5, 6, 7, 18]},
     **{f"B00{n:02d}": "room" for n in range(25, 29)},

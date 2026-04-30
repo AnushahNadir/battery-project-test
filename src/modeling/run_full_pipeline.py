@@ -49,7 +49,7 @@ from src.modeling.reasoning import run_reasoning_analysis
 from src.modeling.statistical_baseline import train_statistical_baseline
 from src.modeling.supervisor_review import SupervisorReviewer
 from src.modeling.uncertainty import run_uncertainty_analysis
-from src.modeling.conformal import ConformalCalibrator, select_calibration_batteries
+from src.modeling.conformal import AdaptiveConformalCalibrator, BootstrapCalibrator, ConformalCalibrator, select_calibration_batteries
 from src.analysis.survival_risk import DEFAULT_FEATURES, run_survival_risk
 from src.pipeline.drift import DriftMonitor
 from src.config import get_config
@@ -478,6 +478,38 @@ def main() -> None:
         )
         calibrator.save(trained_models_dir / "conformal_calibrator.json")
 
+    # Fit non-parametric bootstrap CI on calibration residuals.
+    bootstrap_calibrator = None
+    adaptive_calibrators = {}   # per temperature group
+    if not cal_df.empty:
+        try:
+            cal_feat = cal_df[FEATURE_COLUMNS].fillna(0)
+            cal_pred = ml_model.predict(cal_feat)
+            cal_true = pd.to_numeric(cal_df["RUL"], errors="coerce").to_numpy(dtype=float)
+            bootstrap_calibrator = BootstrapCalibrator(
+                coverage=cfg.conformal.coverage
+            ).fit(cal_true, cal_pred)
+            bootstrap_calibrator.save(trained_models_dir / "bootstrap_calibrator.json")
+
+            # Per-group adaptive CI: use all non-test batteries in each temp group.
+            from src.modeling.conformal import _BATTERY_TEMP_GROUP
+            non_test = [b for b in train_batteries if b not in test_batteries]
+            non_test_df = df[df["battery_id"].isin(non_test)].copy()
+            for grp in ["room", "hot", "cold"]:
+                grp_bats = [b for b in non_test if _BATTERY_TEMP_GROUP.get(b) == grp]
+                grp_df = non_test_df[non_test_df["battery_id"].isin(grp_bats)]
+                if len(grp_df) < 20:
+                    continue
+                gX = grp_df[FEATURE_COLUMNS].fillna(0)
+                gp = ml_model.predict(gX)
+                gt = pd.to_numeric(grp_df["RUL"], errors="coerce").to_numpy(dtype=float)
+                ac = AdaptiveConformalCalibrator(coverage=cfg.conformal.coverage).fit(gt, gp)
+                ac.save(trained_models_dir / f"adaptive_calibrator_{grp}.json")
+                adaptive_calibrators[grp] = ac
+                logger.info(f"  Adaptive CI fitted for group '{grp}' ({len(grp_bats)} batteries)")
+        except Exception as exc:
+            logger.warning(f"Bootstrap/adaptive calibrator failed: {exc}")
+
     # Drift monitoring reference and immediate test-set drift report.
     test_drift_report = None
     drift_error = None
@@ -611,6 +643,29 @@ def main() -> None:
             json.dumps(conformal_report, indent=2),
             encoding="utf-8",
         )
+
+    # Replace conformal CI bounds with per-group adaptive cycle-dependent CI.
+    if adaptive_calibrators:
+        from src.modeling.conformal import _BATTERY_TEMP_GROUP
+        unc_path = output_dir / "uncertainty_estimates.json"
+        try:
+            unc_data = json.loads(unc_path.read_text(encoding="utf-8"))
+            for row in unc_data:
+                bat = str(row.get("battery_id", ""))
+                grp = _BATTERY_TEMP_GROUP.get(bat, "cold")
+                ac  = adaptive_calibrators.get(grp)
+                if ac is None:
+                    continue
+                pred = float(row.get("rul_ensemble_mean") or row.get("rul_median") or 0.0)
+                lo, hi = ac.predict_interval(pred)
+                row["rul_lower_5"] = round(lo, 2)
+                row["rul_upper_95"] = round(hi, 2)
+                row["interval_source"] = "adaptive_conformal"
+                row["q_hat"] = round(hi - pred, 3)
+            unc_path.write_text(json.dumps(unc_data, indent=2), encoding="utf-8")
+            logger.info("  Adaptive per-group CI applied (cycle-dependent asymmetric bands).")
+        except Exception as exc:
+            logger.warning(f"Adaptive CI post-processing failed: {exc}")
 
     logger.info("=" * 50)
     logger.info("STAGE 4.2: SURVIVAL/HAZARD RISK")
