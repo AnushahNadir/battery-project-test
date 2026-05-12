@@ -280,6 +280,6 @@
       "ml": 0.5571539760860864,
       "dl": 0.44284602391391364
     },
-    "conformal_coverage_target": 0.9
+    "conformal_coverage_target": 0.8
   }
 }

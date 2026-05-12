@@ -1,7 +1,7 @@
 {
-  "coverage": 0.9,
+  "coverage": 0.8,
   "rul_col": "RUL",
-  "global_q_hat": 56.35672187310618,
+  "global_q_hat": 40.272517458364284,
   "group_cal": {
     "room": {
       "group": "room",
@@ -169,8 +169,8 @@
         6.425271034240723,
         6.745290756225586
       ],
-      "q_hat": 95.28277629613876,
-      "coverage": 0.9,
+      "q_hat": 69.71438189744947,
+      "coverage": 0.8,
       "strategy": "split",
       "inflated": false
     },
@@ -227,8 +227,8 @@
         4.481456756591797,
         0.6273544430732727
       ],
-      "q_hat": 29.881051863000746,
-      "coverage": 0.9,
+      "q_hat": 25.28397046352954,
+      "coverage": 0.8,
       "strategy": "split",
       "inflated": true
     },
@@ -1188,8 +1188,8 @@
         0.06027781218290329,
         0.8530414700508118
       ],
-      "q_hat": 48.99943949849982,
-      "coverage": 0.9,
+      "q_hat": 31.976526819781252,
+      "coverage": 0.8,
       "strategy": "lobo",
       "inflated": false
     }

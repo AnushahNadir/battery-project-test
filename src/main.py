@@ -60,8 +60,8 @@ def main() -> None:
     ap.add_argument(
         "--alpha",
         type=float,
-        default=0.7,
-        help="EOL threshold fraction for RUL (EOL = alpha * initial_capacity). Typical: 0.7–0.8",
+        default=None,
+        help="EOL threshold fraction for RUL (EOL = alpha * initial_capacity). Defaults to eol.capacity_fade_fraction in pipeline.yaml.",
     )
     ap.add_argument(
         "--non_interactive",
