@@ -3,7 +3,15 @@ import sys
 import unittest
 from pathlib import Path
 
+_ROOT = Path(__file__).resolve().parents[1]
+_DATA_FILE = _ROOT / "data/processed/cycle_features_with_rul.csv"
 
+
+@unittest.skipUnless(
+    _DATA_FILE.exists(),
+    "Integration test requires data/processed/cycle_features_with_rul.csv — "
+    "run Stage 1-2 preprocessing first (python -m src.main ...)",
+)
 class TestPipelineArtifactsIntegration(unittest.TestCase):
     def test_run_full_pipeline_creates_required_artifacts(self):
         root = Path(__file__).resolve().parents[1]
