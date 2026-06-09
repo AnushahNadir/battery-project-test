@@ -303,9 +303,6 @@ def build_rename_map(
             if verbose:
                 logger.info("\n[Mapper] Value-hint candidates (top 3 per field):")
             for field in CANON_TS_REQUIRED:
-                ...
-
-            for field in CANON_TS_REQUIRED:
                 best = [s for s in scores if s.field == field and s.score > 0][:3]
                 for s in best:
                     logger.info(f"  - {field:20s} <- {s.column:22s} score={s.score:.3f}")

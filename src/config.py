@@ -104,6 +104,7 @@ class UncertaintyConfig(BaseModel):
     q_low: float = Field(0.05, gt=0.0, lt=0.5)
     q_high: float = Field(0.95, gt=0.5, lt=1.0)
     min_sigma: float = Field(1.0, gt=0.0)
+    fallback_spread_fraction: float = Field(0.30, gt=0.0, le=1.0)
 
     @model_validator(mode="after")
     def _validate_quantile_order(self) -> "UncertaintyConfig":
@@ -116,6 +117,8 @@ class RiskConfig(BaseModel):
     horizon_cycles: int = Field(20, ge=1, le=500)
     high_threshold: float = Field(0.70, gt=0.0, lt=1.0)
     medium_threshold: float = Field(0.30, gt=0.0, lt=1.0)
+    rul_high_threshold: int = Field(25, ge=1)
+    rul_medium_threshold: int = Field(60, ge=1)
 
     @model_validator(mode="after")
     def _validate_thresholds(self) -> "RiskConfig":
@@ -123,12 +126,23 @@ class RiskConfig(BaseModel):
             raise ValueError(
                 f"medium_threshold ({self.medium_threshold}) must be < high_threshold ({self.high_threshold})"
             )
+        if self.rul_high_threshold >= self.rul_medium_threshold:
+            raise ValueError(
+                f"rul_high_threshold ({self.rul_high_threshold}) must be < rul_medium_threshold ({self.rul_medium_threshold})"
+            )
         return self
 
     def risk_category(self, failure_prob: float) -> str:
         if failure_prob >= self.high_threshold:
             return "HIGH"
         if failure_prob >= self.medium_threshold:
+            return "MEDIUM"
+        return "LOW"
+
+    def rul_risk_category(self, predicted_rul: float) -> str:
+        if predicted_rul <= self.rul_high_threshold:
+            return "HIGH"
+        if predicted_rul <= self.rul_medium_threshold:
             return "MEDIUM"
         return "LOW"
 
@@ -189,7 +203,7 @@ class SurvivalConfig(BaseModel):
     @field_validator("method")
     @classmethod
     def _validate_method(cls, value: str) -> str:
-        allowed = {"kaplan_meier", "cox_ph"}
+        allowed = {"kaplan_meier", "cox_ph", "discrete_hazard"}
         if value not in allowed:
             raise ValueError(f"method must be one of {allowed}, got '{value}'")
         return value

@@ -40,11 +40,14 @@ uncertainty:
   q_low: 0.05
   q_high: 0.95
   min_sigma: 1.0
+  fallback_spread_fraction: 0.30
 
 risk:
-  horizon_cycles: 20
-  high_threshold: 0.70
-  medium_threshold: 0.30
+  horizon_cycles: 30
+  high_threshold: 0.20
+  medium_threshold: 0.08
+  rul_high_threshold: 25
+  rul_medium_threshold: 60
 
 drift:
   psi_amber_threshold: 0.10
@@ -88,7 +91,7 @@ anomaly:
     - B0056
 
 survival:
-  horizon_cycles: 20
+  horizon_cycles: 30
   method: cox_ph
 
 hostile:

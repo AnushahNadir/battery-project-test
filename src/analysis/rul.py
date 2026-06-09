@@ -125,11 +125,29 @@ def add_rul(cycle_table: pd.DataFrame, alpha: float | None = None) -> pd.DataFra
         pulse_floor = 0.5 * init_cap
 
         # Find the FIRST cycle where capacity permanently crosses EOL threshold.
+        # "Permanently" is enforced by requiring 2 consecutive valid cycles both
+        # below threshold — this prevents a single noisy reading from triggering
+        # a false EOL and corrupting all downstream RUL labels.
         eol_cycle = None
-        for cyc, cap in zip(g["cycle_index"].values, g["capacity"].values):
-            if np.isfinite(cap) and cap > pulse_floor and cap <= thr:
-                eol_cycle = int(cyc)
-                break
+        cycles = g["cycle_index"].values
+        caps = g["capacity"].values
+        prev_crossed = False
+        prev_cyc = None
+        for cyc, cap in zip(cycles, caps):
+            if not np.isfinite(cap) or cap <= pulse_floor:
+                prev_crossed = False
+                prev_cyc = None
+                continue
+            if cap <= thr:
+                if prev_crossed:
+                    # Two consecutive valid crossings — EOL confirmed at first one.
+                    eol_cycle = int(prev_cyc)
+                    break
+                prev_crossed = True
+                prev_cyc = cyc
+            else:
+                prev_crossed = False
+                prev_cyc = None
 
         if eol_cycle is None:
             eol_cycle = int(g["cycle_index"].max())

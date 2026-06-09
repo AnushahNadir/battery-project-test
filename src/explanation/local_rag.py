@@ -94,7 +94,21 @@ class BatteryRAG:
         llm_path: str = _LLM_BASE,
         embedding_path: str = _MINILM_BASE,
         pdf_folders: Optional[List[str]] = None,
+        generation_backend: str = "auto",
     ):
+        """
+        Parameters
+        ----------
+        generation_backend : str
+            "auto"            — use local LLM if CUDA is available, else retrieval-only.
+            "local_llm"       — always attempt LLM generation; raise if CUDA absent.
+            "retrieval_only"  — skip LLM entirely; return retrieved passages as-is.
+        """
+        if generation_backend not in {"auto", "local_llm", "retrieval_only"}:
+            raise ValueError(
+                f"generation_backend must be 'auto', 'local_llm', or 'retrieval_only', "
+                f"got '{generation_backend}'"
+            )
         self.project_root = Path(project_root)
         self._llm_path = _resolve_snapshot(llm_path)
         self._emb_path = _resolve_snapshot(embedding_path)
@@ -102,6 +116,7 @@ class BatteryRAG:
             Path(p) for p in (pdf_folders or _DEFAULT_PDF_FOLDERS)
         ]
         self._db_path = self.project_root / "data" / "vector_db"
+        self._generation_backend = generation_backend
 
         self._embedder = None
         self._collection = None
@@ -259,21 +274,40 @@ class BatteryRAG:
 
     # ── LLM (lazy load) ────────────────────────────────────────────────────────
 
-    def _load_llm(self) -> None:
+    def _load_llm(self) -> bool:
+        """
+        Load the local LLM. Returns True if LLM is ready, False if falling
+        back to retrieval-only mode.
+
+        Raises RuntimeError only when generation_backend='local_llm' and CUDA
+        is absent — all other no-GPU situations degrade gracefully.
+        """
         if self._llm_loaded:
-            return
+            return True
+
+        if self._generation_backend == "retrieval_only":
+            return False
 
         import torch
         from transformers import AutoModelForCausalLM, AutoTokenizer
 
         if not torch.cuda.is_available():
-            raise RuntimeError(
-                "CUDA not available. "
-                "Reinstall PyTorch with CUDA support:\n"
-                "  pip uninstall torch torchvision torchaudio -y\n"
-                "  pip install torch torchvision torchaudio "
-                "--index-url https://download.pytorch.org/whl/cu124"
+            if self._generation_backend == "local_llm":
+                raise RuntimeError(
+                    "generation_backend='local_llm' requires CUDA.\n"
+                    "Reinstall PyTorch with CUDA support:\n"
+                    "  pip uninstall torch torchvision torchaudio -y\n"
+                    "  pip install torch torchvision torchaudio "
+                    "--index-url https://download.pytorch.org/whl/cu124\n"
+                    "Or use generation_backend='retrieval_only' for CPU-only environments."
+                )
+            # generation_backend == "auto": degrade silently
+            logger.warning(
+                "CUDA not available — BatteryRAG running in retrieval-only mode. "
+                "Responses will be retrieved passages, not LLM-synthesised answers. "
+                "Set generation_backend='local_llm' to turn this into a hard error."
             )
+            return False
 
         logger.info("Loading Llama 3.1 8B from %s", self._llm_path)
         from transformers import BitsAndBytesConfig
@@ -294,6 +328,7 @@ class BatteryRAG:
         )
         self._llm_loaded = True
         logger.info("Llama 3.1 8B loaded successfully")
+        return True
 
     # ── Prompt ────────────────────────────────────────────────────────────────
 
@@ -336,7 +371,12 @@ class BatteryRAG:
     def generate_answer(self, prompt: str, max_new_tokens: int = 600) -> str:
         import torch
 
-        self._load_llm()
+        if not self._load_llm():
+            raise RuntimeError(
+                "generate_answer() requires an LLM. "
+                "Use explain() for automatic retrieval-only fallback, "
+                "or initialize with generation_backend='local_llm' to get a clear error."
+            )
         device = next(self._model.parameters()).device
         inputs = self._tokenizer(
             prompt,
@@ -375,7 +415,8 @@ class BatteryRAG:
 
         Returns
         -------
-        answer  : str        — LLM-generated explanation
+        answer  : str        — LLM-generated explanation, or retrieved passages
+                               when running in retrieval-only mode (no GPU).
         sources : list[str]  — filenames of documents used
         """
         if self._collection is None or self._collection.count() == 0:
@@ -391,6 +432,19 @@ class BatteryRAG:
         documents = results["documents"][0]
         metadatas = results["metadatas"][0]
         sources = sorted({m.get("source", "") for m in metadatas})
+
+        llm_available = self._load_llm()
+
+        if not llm_available:
+            passages = "\n\n---\n\n".join(
+                f"[{m.get('source', 'unknown')}]\n{doc}"
+                for doc, m in zip(documents, metadatas)
+            )
+            answer = (
+                "[Retrieval-only mode: no LLM generation — CUDA unavailable or "
+                "generation_backend='retrieval_only']\n\n" + passages
+            )
+            return answer, sources
 
         prompt = self._format_prompt(query, documents, metadatas, extra_context)
         answer = self.generate_answer(prompt)

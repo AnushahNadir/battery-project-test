@@ -255,7 +255,8 @@ class XGBoostRULModel:
             q95 = np.percentile(predictions, 95, axis=0).astype(float)
         else:
             # Conservative symmetric fallback around median.
-            spread = np.maximum(np.abs(q50) * 0.3, 1.0)
+            spread_frac = float(get_config().uncertainty.fallback_spread_fraction)
+            spread = np.maximum(np.abs(q50) * spread_frac, 1.0)
             q05 = (q50 - spread).astype(float)
             q95 = (q50 + spread).astype(float)
 

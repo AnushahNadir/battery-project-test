@@ -450,16 +450,106 @@ def run_survival_risk(
             },
             "_disclaimer": "Kaplan-Meier survival estimates are statistical, not causal.",
         }
+    elif method == "cox_ph":
+        # True Cox Proportional-Hazards model via lifelines.
+        # Fitted at battery level (one row per battery): duration = cycle at EOL event,
+        # event = whether failure was observed (vs censored).
+        # Partial hazard scores are then mapped back to per-cycle rows and converted to
+        # horizon failure probabilities using the same discrete accumulation as elsewhere.
+        try:
+            from lifelines import CoxPHFitter
+        except ImportError:
+            notes.append(
+                "lifelines not installed — falling back to discrete-time logistic hazard. "
+                "Install with: pip install lifelines>=0.27"
+            )
+            method = "discrete_hazard"  # fall through to the next branch below
+
+        if method == "cox_ph":
+            pp_std, medians, stds = _impute_and_standardize(pp, feats)
+
+            batt_surv = (
+                pp[["battery_id", "event_cycle_per_battery", "event_observed_per_battery"] + feats]
+                .drop_duplicates(subset=["battery_id"])
+                .copy()
+            )
+            batt_surv["duration"] = (
+                pd.to_numeric(batt_surv["event_cycle_per_battery"], errors="coerce").fillna(1).clip(lower=1)
+            )
+            batt_surv["event"] = batt_surv["event_observed_per_battery"].astype(int)
+            for f in feats:
+                batt_surv[f] = pd.to_numeric(batt_surv[f], errors="coerce").fillna(0)
+
+            cph = CoxPHFitter(penalizer=0.1)
+            try:
+                cph.fit(batt_surv[["duration", "event"] + feats], duration_col="duration", event_col="event")
+                model_type = "cox_proportional_hazards"
+                # Partial hazard: higher → more risk. Map per-cycle rows using standardised features.
+                partial_hazard = cph.predict_partial_hazard(pp_std[feats].fillna(0)).to_numpy(dtype=float)
+                # Normalise to (0, 1) so it behaves like a per-cycle hazard probability.
+                ph_min, ph_max = partial_hazard.min(), partial_hazard.max()
+                if ph_max > ph_min:
+                    pp_std["hazard_prob"] = np.clip(
+                        (partial_hazard - ph_min) / (ph_max - ph_min), 0.0, 1.0
+                    )
+                else:
+                    pp_std["hazard_prob"] = 0.5
+                    notes.append("Cox PH partial hazard had zero variance — constant 0.5 assigned.")
+
+                coef_dict = cph.params_.to_dict()
+                model_blob = {
+                    "model_type": model_type,
+                    "method": method,
+                    "feature_cols": feats,
+                    "coef": {k: round(float(v), 6) for k, v in coef_dict.items()},
+                    "concordance_index": round(float(cph.concordance_index_), 4),
+                    "horizon": horizon,
+                    "notes": notes,
+                    "_disclaimer": "Cox PH partial hazard normalised to [0,1] for horizon risk computation. Not causal.",
+                }
+            except Exception as exc:
+                notes.append(f"CoxPHFitter.fit() failed ({exc}); falling back to discrete-time logistic hazard.")
+                method = "discrete_hazard"  # fall through
+
+        if method == "discrete_hazard":
+            # Fallback when Cox PH fit failed — reuse logistic hazard path.
+            pp_std, medians, stds = _impute_and_standardize(pp, feats)
+            X = pp_std[feats].values.astype(float)
+            y = pp_std["y_event"].values.astype(int)
+            coef, intercept, model_type, _notes = _fit_logistic_hazard(X, y)
+            notes.extend(_notes)
+            pp_std["hazard_prob"] = _predict_hazard(pp_std, feats, coef, intercept)
+            model_blob = {
+                "model_type": model_type,
+                "method": "discrete_hazard",
+                "feature_cols": feats,
+                "coef": {f: float(w) for f, w in zip(feats, coef)},
+                "intercept": float(intercept),
+                "medians": medians,
+                "stds": stds,
+                "horizon": horizon,
+                "notes": notes,
+                "_disclaimer": "Discrete-time logistic hazard. Not causal.",
+            }
+
+        if "hazard_prob" in pp_std.columns:
+            pp_std["failure_prob_horizon"] = 0.0
+            for bid, g in pp_std.groupby("battery_id", sort=False):
+                g_sorted = g.sort_values("cycle_index", kind="mergesort")
+                fp = _failure_prob_within_horizon(g_sorted["hazard_prob"].values.astype(float), horizon=horizon)
+                pp_std.loc[g_sorted.index, "failure_prob_horizon"] = fp
+            pp_std["risk_category"] = pp_std["failure_prob_horizon"].apply(
+                lambda p: cfg.risk.risk_category(float(p))
+            )
+        preds = pp_std
+
     else:
-        # Fallback/alternate method: logistic discrete-time hazard.
+        # discrete_hazard: logistic discrete-time hazard.
         pp_std, medians, stds = _impute_and_standardize(pp, feats)
         X = pp_std[feats].values.astype(float)
         y = pp_std["y_event"].values.astype(int)
 
         coef, intercept, model_type, notes = _fit_logistic_hazard(X, y)
-        if method == "cox_ph":
-            notes.append("Configured method='cox_ph' is approximated with logistic discrete-time hazard in this version.")
-            model_type = "cox_ph_proxy_logistic_hazard"
         pp_std["hazard_prob"] = _predict_hazard(pp_std, feats, coef, intercept)
 
         pp_std["failure_prob_horizon"] = 0.0
@@ -481,7 +571,7 @@ def run_survival_risk(
             "stds": stds,
             "horizon": horizon,
             "notes": notes,
-            "_disclaimer": "This is a statistical risk score (discrete-time hazard). Not causal.",
+            "_disclaimer": "Discrete-time logistic hazard. Not causal.",
         }
 
     n_rows = len(preds)

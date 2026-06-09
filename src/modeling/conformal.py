@@ -143,8 +143,8 @@ class AdaptiveConformalCalibrator:
         self._global_q_low  = float(np.percentile(signed, q_lo_pct))
         self._global_q_high = float(np.percentile(signed, q_hi_pct))
 
-        for upper, label in self.BINS:
-            prev = self.BINS[self.BINS.index((upper, label)) - 1][0] if self.BINS.index((upper, label)) > 0 else 0
+        for i, (upper, label) in enumerate(self.BINS):
+            prev = self.BINS[i - 1][0] if i > 0 else 0
             mask = (preds >= prev) & (preds < upper)
             r = signed[mask]
             if len(r) >= 10:

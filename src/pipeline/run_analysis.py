@@ -4,6 +4,7 @@ from __future__ import annotations
 from pathlib import Path
 import json
 
+import numpy as np
 import pandas as pd
 
 from src.pipeline.data_loader import load_metadata, save_csv
@@ -31,6 +32,37 @@ REQUIRED_TS = [
 _CFG = get_config()
 LOW_THRESHOLD = float(_CFG.gating.low_threshold)
 REVIEW_THRESHOLD = float(_CFG.gating.review_threshold)
+
+
+def _compute_pattern_agreement(df_ts: pd.DataFrame) -> float:
+    """
+    Fraction of TS values that fall within the expected physical ranges from
+    configs/pipeline.yaml, averaged across the columns that are present.
+
+    Returns a float in [0, 1]. A column missing entirely is skipped (not
+    penalised — schema_match_ratio already handles missing columns).
+    """
+    cfg = get_config()
+    s = cfg.schema
+    col_bounds = {
+        "voltage_measured":     (s.voltage_v.min,     s.voltage_v.max),
+        "voltage_load":         (s.voltage_v.min,     s.voltage_v.max),
+        "current_measured":     (s.current_a.min,     s.current_a.max),
+        "current_load":         (s.current_a.min,     s.current_a.max),
+        "temperature_measured": (s.temperature_c.min, s.temperature_c.max),
+    }
+    scores = []
+    for col, (lo, hi) in col_bounds.items():
+        if col not in df_ts.columns:
+            continue
+        x = pd.to_numeric(df_ts[col], errors="coerce").dropna().to_numpy()
+        if len(x) == 0:
+            scores.append(0.0)
+            continue
+        # Current columns are signed (charge/discharge); check absolute magnitude.
+        x_check = np.abs(x) if "current" in col else x
+        scores.append(float(np.mean((x_check >= lo) & (x_check <= hi))))
+    return float(np.mean(scores)) if scores else 0.0
 
 
 def run(
@@ -91,8 +123,7 @@ def run(
     validation = validate_timeseries(df_ts_std, required_cols=REQUIRED_TS)
     schema_match_ratio = sum(c in df_ts_std.columns for c in REQUIRED_TS) / len(REQUIRED_TS)
 
-    # simple placeholder: if schema_ok assume decent agreement
-    pattern_agreement_ratio = 0.75 if validation.schema_ok else 0.40
+    pattern_agreement_ratio = _compute_pattern_agreement(df_ts_std)
 
     conf = compute_confidence(
         schema_match_ratio=schema_match_ratio,
