@@ -175,13 +175,17 @@ if view == "Battery Report":
     # ── CHART ROW 1: capacity + RUL side by side ──────────────────────────────
     col_left, col_right = st.columns(2)
 
+    # EIS/impedance cycles have near-zero capacity (~0.05 Ah) and are not real discharge
+    # measurements — exclude them from all charts so graphs show only meaningful data.
+    df_discharge = df_b[df_b["capacity"] > 0.5].copy()
+
     with col_left:
         st.subheader("Capacity Fade")
         st.caption("How the battery's charge-holding ability decreases over cycles. "
-                   "Red dashed line = End-of-Life threshold (70% of starting capacity). "
+                   "Red dashed line = End-of-Life threshold (80% of starting capacity). "
                    "Red dots = anomalous cycles.")
         fig, ax = plt.subplots(figsize=(6, 3.8))
-        ax.plot(df_b["cycle_index"], df_b["capacity"],
+        ax.plot(df_discharge["cycle_index"], df_discharge["capacity"],
                 color=GC[grp], lw=2, label="Capacity (Ah)")
         if eol_thr:
             ax.axhline(eol_thr, color="#C0392B", lw=1.5, ls="--",
@@ -189,7 +193,7 @@ if view == "Battery Report":
         if not a_b.empty and "cycle_index" in a_b.columns:
             a_b2 = a_b.copy()
             a_b2["cycle_index"] = pd.to_numeric(a_b2["cycle_index"], errors="coerce")
-            merged = df_b.merge(a_b2[["cycle_index"]].drop_duplicates(), on="cycle_index", how="inner")
+            merged = df_discharge.merge(a_b2[["cycle_index"]].drop_duplicates(), on="cycle_index", how="inner")
             if not merged.empty:
                 ax.scatter(merged["cycle_index"], merged["capacity"],
                            color="red", s=50, zorder=5, label=f"Anomaly ({len(merged)})")
@@ -201,22 +205,26 @@ if view == "Battery Report":
         ax.spines[["top","right"]].set_visible(False)
         st.pyplot(fig); plt.close(fig)
 
+    discharge_cycles = set(df_discharge["cycle_index"])
+    u_plot = u_b[u_b["cycle_index"].isin(discharge_cycles)].copy() \
+             if not u_b.empty else pd.DataFrame()
+
     with col_right:
         st.subheader("RUL Prediction")
         st.caption("Remaining Useful Life predicted by the model at each cycle. "
                    "Shaded band = 90% confidence interval (true RUL is inside this band 90% of the time). "
                    "Dashed = true RUL.")
-        if bat_role == "TEST" and not u_b.empty:
+        if bat_role == "TEST" and not u_plot.empty:
             fig2, ax2 = plt.subplots(figsize=(6, 3.8))
-            x  = pd.to_numeric(u_b["cycle_index"], errors="coerce")
-            y  = pd.to_numeric(u_b[RUL_COL], errors="coerce")
+            x  = pd.to_numeric(u_plot["cycle_index"], errors="coerce")
+            y  = pd.to_numeric(u_plot[RUL_COL], errors="coerce")
             ax2.plot(x, y, color=GC[grp], lw=2, label="Predicted RUL")
-            if "RUL" in df_b.columns:
-                ax2.plot(df_b["cycle_index"], df_b["RUL"],
+            if "RUL" in df_discharge.columns:
+                ax2.plot(df_discharge["cycle_index"], df_discharge["RUL"],
                          color="#1F3A5F", lw=1.5, ls="--", alpha=0.7, label="True RUL")
             if has_bands:
-                lo = pd.to_numeric(u_b["rul_lower_5"],  errors="coerce")
-                hi = pd.to_numeric(u_b["rul_upper_95"], errors="coerce")
+                lo = pd.to_numeric(u_plot["rul_lower_5"],  errors="coerce")
+                hi = pd.to_numeric(u_plot["rul_upper_95"], errors="coerce")
                 ax2.fill_between(x, lo, hi, alpha=0.2, color=GC[grp],
                                  label="90% confidence band")
             ax2.axhline(0, color="#C0392B", lw=1, ls=":", alpha=0.5)
@@ -229,67 +237,31 @@ if view == "Battery Report":
 
     st.markdown("---")
 
-    # ── SURVIVAL RISK ─────────────────────────────────────────────────────────
-    st.subheader("Survival Risk — Will this battery fail soon?")
+    # ── RISK OVER TIME ────────────────────────────────────────────────────────
+    st.subheader("Risk Over Time")
     st.caption(
-        "At each cycle we ask: *what is the chance this battery fails within the next 20 cycles?* "
-        "Below 30% = LOW (safe). 30–70% = MEDIUM (monitor). Above 70% = HIGH (act now)."
+        "Risk is assigned from the model's **predicted RUL** at each cycle — not from a separate survival model. "
+        "**HIGH** (red): ≤ 25 cycles predicted remaining — replace soon. "
+        "**MEDIUM** (orange): 26–60 cycles — monitor closely. "
+        "**LOW** (green): > 60 cycles — operating safely. "
+        "Dashed line = true RUL for reference."
     )
 
-    if bat_role == "TEST" and not s_b.empty:
-        rc = s_b["risk_category"].value_counts().to_dict() if "risk_category" in s_b.columns else {}
-        horizon = 20
+    RUL_HIGH_THR = 25
+    RUL_MED_THR  = 60
 
-        # Context boxes
-        exp_col1, exp_col2 = st.columns(2)
-        with exp_col1:
-            if eol_cyc and eol_thr:
-                high_start = None
-                if not s_b.empty and "failure_prob_horizon" in s_b.columns:
-                    high_rows = s_b[s_b["failure_prob_horizon"] >= 0.70]
-                    if not high_rows.empty:
-                        high_start = int(high_rows["cycle_index"].min())
+    if bat_role == "TEST" and not u_plot.empty and RUL_COL:
+        rc_counts = u_plot["risk_category"].value_counts().to_dict() \
+                    if "risk_category" in u_plot.columns else {}
 
-                st.markdown(
-                    f"**Key facts for {selected}:**\n\n"
-                    f"- EOL threshold: **{eol_thr:.3f} Ah**\n"
-                    f"- Battery reached EOL at: **cycle {eol_cyc}**\n"
-                    f"- Maintenance window: **{horizon} cycles**\n"
-                    + (f"- HIGH risk starts at: **cycle {high_start}**"
-                       if high_start else "- No HIGH risk cycles detected")
-                )
-        with exp_col2:
-            if eol_cyc:
-                high_start = None
-                if not s_b.empty and "failure_prob_horizon" in s_b.columns:
-                    high_rows = s_b[s_b["failure_prob_horizon"] >= 0.70]
-                    if not high_rows.empty:
-                        high_start = int(high_rows["cycle_index"].min())
-                if high_start:
-                    cycles_safe = high_start - 1
-                    st.markdown(
-                        f"**Why the graph looks the way it does:**\n\n"
-                        f"- Cycles 1–{cycles_safe}: EOL is more than {horizon} cycles away → **0% failure prob → LOW**\n"
-                        f"- From cycle {high_start}: EOL enters the {horizon}-cycle window → **HIGH risk**\n\n"
-                        f"The line jumps from 0% to 100% at cycle {high_start} "
-                        f"because that is exactly when EOL becomes imminent."
-                    )
-                else:
-                    st.markdown(
-                        f"**Why all cycles show 0%:**\n\n"
-                        f"This battery's EOL (cycle {eol_cyc}) is always more than "
-                        f"{horizon} cycles beyond any recorded cycle, so failure "
-                        f"probability never rises."
-                    )
-
-        # Risk category cards
+        # Cards
         r1, r2, r3 = st.columns(3)
         for col_, cat, color_, meaning in [
-            (r1,"LOW",    "#2E8648", f"Safe — EOL is more than {horizon} cycles away"),
-            (r2,"MEDIUM", "#E68A00", f"Monitor — EOL is approaching"),
-            (r3,"HIGH",   "#C0392B", f"Act now — EOL is within {horizon} cycles"),
+            (r1, "LOW",    "#2E8648", f"Predicted RUL > {RUL_MED_THR} cycles — safe"),
+            (r2, "MEDIUM", "#E68A00", f"Predicted RUL {RUL_HIGH_THR}–{RUL_MED_THR} cycles — monitor"),
+            (r3, "HIGH",   "#C0392B", f"Predicted RUL ≤ {RUL_HIGH_THR} cycles — act now"),
         ]:
-            n = rc.get(cat, 0)
+            n = rc_counts.get(cat, 0)
             col_.markdown(
                 f"<div style='background:{color_}22;border-left:5px solid {color_};"
                 f"padding:12px;border-radius:6px;text-align:center'>"
@@ -300,36 +272,56 @@ if view == "Battery Report":
                 f"</div>", unsafe_allow_html=True)
         st.markdown("")
 
-        # Chart
-        fig3, ax3 = plt.subplots(figsize=(12, 3.5))
-        fp = s_b["failure_prob_horizon"]
-        cyc = s_b["cycle_index"]
-        ax3.fill_between(cyc, 0, fp, where=fp<0.30,
-                         color="#2E8648", alpha=0.3, label="LOW (<30%)")
-        ax3.fill_between(cyc, 0, fp, where=(fp>=0.30)&(fp<0.70),
-                         color="#E68A00", alpha=0.3, label="MEDIUM (30–70%)")
-        ax3.fill_between(cyc, 0, fp, where=fp>=0.70,
-                         color="#C0392B", alpha=0.3, label="HIGH (>70%)")
-        ax3.plot(cyc, fp, color="#C0392B", lw=2)
-        ax3.axhline(0.70, color="#C0392B", lw=1.2, ls="--", alpha=0.6)
-        ax3.axhline(0.30, color="#E68A00", lw=1.2, ls="--", alpha=0.6)
-        ax3.text(cyc.max()*0.99, 0.72, "HIGH (70%)",   ha="right", fontsize=8, color="#C0392B")
-        ax3.text(cyc.max()*0.99, 0.32, "MEDIUM (30%)", ha="right", fontsize=8, color="#E68A00")
-        if eol_cyc and eol_cyc <= int(cyc.max()):
+        x_r = pd.to_numeric(u_plot["cycle_index"], errors="coerce")
+        y_r = pd.to_numeric(u_plot[RUL_COL],       errors="coerce")
+        y_max = max(float(y_r.max()) * 1.15, RUL_MED_THR * 1.6)
+
+        fig3, ax3 = plt.subplots(figsize=(12, 3.8))
+
+        # Coloured background zones
+        ax3.axhspan(0,            RUL_HIGH_THR, color="#C0392B", alpha=0.07)
+        ax3.axhspan(RUL_HIGH_THR, RUL_MED_THR,  color="#E68A00", alpha=0.07)
+        ax3.axhspan(RUL_MED_THR,  y_max,         color="#2E8648", alpha=0.07)
+
+        # Threshold lines
+        ax3.axhline(RUL_HIGH_THR, color="#C0392B", lw=1.2, ls="--", alpha=0.7)
+        ax3.axhline(RUL_MED_THR,  color="#E68A00", lw=1.2, ls="--", alpha=0.7)
+        ax3.text(x_r.max() * 0.99, RUL_HIGH_THR + 1,
+                 f"HIGH  (≤ {RUL_HIGH_THR} cycles)", ha="right", fontsize=8, color="#C0392B")
+        ax3.text(x_r.max() * 0.99, RUL_MED_THR  + 1,
+                 f"MEDIUM (≤ {RUL_MED_THR} cycles)", ha="right", fontsize=8, color="#E68A00")
+
+        # True RUL (dashed reference)
+        if "RUL" in df_discharge.columns:
+            ax3.plot(df_discharge["cycle_index"], df_discharge["RUL"],
+                     color="#888888", lw=1.4, ls="--", alpha=0.6, label="True RUL")
+
+        # Predicted RUL with fill coloured by risk zone
+        ax3.fill_between(x_r, 0, y_r,
+                         where=y_r <= RUL_HIGH_THR,
+                         color="#C0392B", alpha=0.35, interpolate=True)
+        ax3.fill_between(x_r, RUL_HIGH_THR, y_r,
+                         where=(y_r > RUL_HIGH_THR) & (y_r <= RUL_MED_THR),
+                         color="#E68A00", alpha=0.25, interpolate=True)
+        ax3.plot(x_r, y_r, color="#1F3A5F", lw=2, label="Predicted RUL")
+
+        if eol_cyc and eol_cyc <= int(x_r.max()):
             ax3.axvline(eol_cyc, color="#E68A00", lw=1.5, ls=":", alpha=0.8)
-            ax3.text(eol_cyc+2, 0.5, f"EOL\n(cycle {eol_cyc})",
-                     fontsize=8, color="#E68A00", va="center")
+            ax3.text(eol_cyc + 1, y_max * 0.55,
+                     f"EOL\n(cycle {eol_cyc})", fontsize=8, color="#E68A00", va="center")
+
         ax3.set_xlabel("Cycle index")
-        ax3.set_ylabel(f"P(fail within {horizon} cycles)")
-        ax3.set_ylim(-0.05, 1.1)
-        ax3.legend(fontsize=8, loc="upper left")
-        ax3.grid(alpha=0.3); ax3.spines[["top","right"]].set_visible(False)
+        ax3.set_ylabel("Predicted RUL (cycles)")
+        ax3.set_ylim(0, y_max)
+        ax3.legend(fontsize=8, loc="upper right")
+        ax3.grid(alpha=0.3)
+        ax3.spines[["top","right"]].set_visible(False)
         st.pyplot(fig3); plt.close(fig3)
 
     elif bat_role != "TEST":
-        st.info("Survival risk is only computed for test batteries.")
+        st.info("Risk analysis is only computed for test batteries.")
     else:
-        st.info("No survival data for this battery.")
+        st.info("No uncertainty estimates for this battery.")
 
     st.markdown("---")
 
@@ -549,6 +541,7 @@ if view == "Battery Report":
                     "Feature changed": cf.get("feature_changed",""),
                     "Original":     round(float(cf.get("original_value",0)),3),
                     "Hypothetical": round(float(cf.get("counterfactual_value",0)),3),
+                    "New Predicted RUL": round(float(cf.get("new_predicted_rul", float(c.get("predicted_rul",0)) + float(cf.get("predicted_rul_change",0)))),1),
                     "RUL would change by": round(float(cf.get("predicted_rul_change",0)),2),
                 })
             cdf = pd.DataFrame(cf_rows)

@@ -385,8 +385,32 @@ def run_survival_risk(
 
     feats = feature_cols or DEFAULT_FEATURES
 
+    # Override EOL threshold for survival event definition when configured.
+    # Uses per-battery max capacity (robust initial-capacity proxy) × fraction,
+    # giving more observed events than the strict 80% EOL threshold.
+    early_frac = cfg.survival.event_capacity_fraction
+    df_surv = df.copy()
+    if early_frac is not None and "capacity" in df_surv.columns:
+        bat_max_cap = (
+            df_surv.groupby("battery_id")["capacity"]
+            .max()
+            .rename("_max_cap")
+        )
+        df_surv = df_surv.join(bat_max_cap, on="battery_id")
+        df_surv["eol_capacity_threshold"] = df_surv["_max_cap"] * early_frac
+        df_surv = df_surv.drop(columns=["_max_cap"])
+        notes.append(
+            f"Event definition overridden: capacity < {early_frac:.0%} × per-battery "
+            f"max capacity (survival.event_capacity_fraction={early_frac})."
+        )
+        logger.info(
+            "[survival_risk] event_capacity_fraction=%.2f — overriding eol_capacity_threshold.", early_frac
+        )
+    else:
+        df_surv = df
+
     # 1) Compute event flags
-    flagged = _compute_event_flags(df)
+    flagged = _compute_event_flags(df_surv)
 
     # 2) Build person-period table
     pp = _build_person_period_table(flagged, feats)

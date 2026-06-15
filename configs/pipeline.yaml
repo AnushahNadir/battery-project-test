@@ -46,8 +46,8 @@ risk:
   horizon_cycles: 30
   high_threshold: 0.20
   medium_threshold: 0.08
-  rul_high_threshold: 25
-  rul_medium_threshold: 60
+  rul_high_threshold: 50
+  rul_medium_threshold: 120
 
 drift:
   psi_amber_threshold: 0.10
@@ -93,6 +93,7 @@ anomaly:
 survival:
   horizon_cycles: 30
   method: cox_ph
+  event_capacity_fraction: 0.85
 
 hostile:
   low_conf_threshold: 0.50

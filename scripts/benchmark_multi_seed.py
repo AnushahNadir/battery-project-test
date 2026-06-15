@@ -176,6 +176,7 @@ def _run_seed(
     result["xgb_rmse"] = float(ml_metrics.rmse)
     result["xgb_mae"] = float(ml_metrics.mae)
 
+    dl_model = None
     if include_dl:
         dl_model = TemporalSequenceModel(
             sequence_length=dl_seq_len,
@@ -198,6 +199,36 @@ def _run_seed(
         result["dl_rmse"] = float(dl_metrics.rmse)
         result["dl_mae"] = float(dl_metrics.mae)
         result["dl_backend"] = dl_metrics.backend
+
+    # Ensemble RMSE using inverse-RMSE weights (mirrors run_full_pipeline logic).
+    from src.modeling.run_full_pipeline import _compute_uncertainty_weights
+    from src.modeling.ml_model import FEATURE_COLUMNS
+
+    uq_weights = _compute_uncertainty_weights(
+        stat_rmse=stat_metrics.rmse,
+        ml_rmse=ml_metrics.rmse,
+        dl_rmse=float(result.get("dl_rmse", float("nan"))),
+    )
+    result["ensemble_weights"] = uq_weights
+
+    try:
+        feat = test_df[FEATURE_COLUMNS].fillna(0)
+        y_true = pd.to_numeric(test_df["RUL"], errors="coerce").to_numpy(dtype=float)
+        stat_pred = stat_model.predict(test_df)
+        ml_pred = ml_model.predict(feat)
+        dl_pred = dl_model.predict(test_df) if dl_model is not None else ml_pred
+
+        ens_pred = (
+            uq_weights["stat"] * stat_pred
+            + uq_weights["ml"] * ml_pred
+            + uq_weights["dl"] * dl_pred
+        )
+        valid = np.isfinite(y_true) & np.isfinite(ens_pred)
+        if valid.any():
+            result["ensemble_rmse"] = float(np.sqrt(np.mean((ens_pred[valid] - y_true[valid]) ** 2)))
+            result["ensemble_mae"] = float(np.mean(np.abs(ens_pred[valid] - y_true[valid])))
+    except Exception as exc:
+        logger.warning(f"Ensemble RMSE computation failed: {exc}")
 
     return result
 
@@ -289,6 +320,7 @@ def main() -> None:
     summary = {
         "statistical_rmse": _rmse_summary(runs, "stat_rmse"),
         "xgboost_rmse": _rmse_summary(runs, "xgb_rmse"),
+        "ensemble_rmse": _rmse_summary(runs, "ensemble_rmse"),
     }
     if include_dl:
         summary["dl_rmse"] = _rmse_summary(runs, "dl_rmse")

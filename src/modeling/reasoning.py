@@ -88,6 +88,7 @@ class CounterfactualExample:
                 "feature_changed": self.feature_changed,
                 "original_value": round(self.original_value, 3),
                 "counterfactual_value": round(self.counterfactual_value, 3),
+                "new_predicted_rul": round(self.predicted_rul + self.predicted_rul_change, 2),
                 "predicted_rul_change": round(self.predicted_rul_change, 2),
                 "confidence": round(self.confidence, 3),
             },

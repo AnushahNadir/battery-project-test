@@ -199,6 +199,7 @@ class AnomalyConfig(BaseModel):
 class SurvivalConfig(BaseModel):
     horizon_cycles: int = Field(20, ge=1, le=500)
     method: str = Field("kaplan_meier")
+    event_capacity_fraction: Optional[float] = Field(None)
 
     @field_validator("method")
     @classmethod
@@ -206,6 +207,13 @@ class SurvivalConfig(BaseModel):
         allowed = {"kaplan_meier", "cox_ph", "discrete_hazard"}
         if value not in allowed:
             raise ValueError(f"method must be one of {allowed}, got '{value}'")
+        return value
+
+    @field_validator("event_capacity_fraction")
+    @classmethod
+    def _validate_event_fraction(cls, value: Optional[float]) -> Optional[float]:
+        if value is not None and not (0.0 < value < 1.0):
+            raise ValueError(f"event_capacity_fraction must be in (0, 1), got {value}")
         return value
 
 

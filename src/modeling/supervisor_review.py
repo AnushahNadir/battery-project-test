@@ -89,8 +89,15 @@ class SupervisorReviewer:
 
         stage5_verdict = "PASS" if (len(hypotheses) > 0 and len(counterfactuals) > 0) else "FAIL"
 
-        # Explicit survival/hazard check for risk output
-        stage55_verdict = "PASS" if (survival_metrics and survival_preds_exists) else "FAIL"
+        # Explicit survival/hazard check for risk output.
+        # CONDITIONAL PASS when n_events < 10 — too few events for reliable hazard estimates.
+        _n_events = int(survival_metrics.get("n_events", 0)) if survival_metrics else 0
+        if not survival_metrics or not survival_preds_exists:
+            stage55_verdict = "FAIL"
+        elif _n_events < 10:
+            stage55_verdict = "CONDITIONAL PASS"
+        else:
+            stage55_verdict = "PASS"
 
         # PASS when the detector ran (file exists); zero anomalies on clean data is fine.
         stage6_verdict = "PASS" if anomalies_file_exists else "FAIL"
@@ -157,8 +164,15 @@ class SupervisorReviewer:
             "",
             f"### Stage 5.5: Survival/Hazard Risk - {stage55_verdict}",
             f"- Survival predictions file exists: {survival_preds_exists}",
-            f"- Survival rows: {int(survival_metrics.get('n_rows', 0))}",
-            f"- Event rate: {float(survival_metrics.get('event_rate', 0.0)):.4%}",
+            f"- Survival rows: {int(survival_metrics.get('n_rows', 0)) if survival_metrics else 0}",
+            f"- Events observed: {_n_events}",
+            f"- Event rate: {float(survival_metrics.get('event_rate', 0.0)):.4%}" if survival_metrics else "- Event rate: N/A",
+            *(
+                [f"- WARNING: Only {_n_events} events observed. "
+                 "Hazard estimates are statistically unreliable (need ≥10 events). "
+                 "Treat survival risk scores as exploratory only."]
+                if 0 < _n_events < 10 else []
+            ),
             "",
             f"### Stage 6: Anomaly Detection - {stage6_verdict}",
             f"- Detector ran: {anomalies_file_exists}",

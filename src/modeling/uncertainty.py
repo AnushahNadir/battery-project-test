@@ -211,6 +211,9 @@ class UncertaintyQuantifier:
         fp = _f(failure_probability)
         return get_config().risk.risk_category(fp)
 
+    def categorize_risk_by_rul(self, predicted_rul: float) -> str:
+        return get_config().risk.rul_risk_category(_f(predicted_rul))
+
     def predict_with_uncertainty(self, df: pd.DataFrame, horizon: Optional[int] = None) -> List[UncertaintyEstimate]:
         horizon = int(_consts().DEFAULT_HORIZON if horizon is None else horizon)
         estimates: List[UncertaintyEstimate] = []
@@ -374,7 +377,7 @@ class UncertaintyQuantifier:
                             rul_upper_raw=raw_hi,
                             horizon=horizon,
                         )
-                    risk = self.categorize_risk(fail_prob)
+                    risk = self.categorize_risk_by_rul(rul_ensemble)
                     uncertainty_method = (
                         "conformal_weighted_ensemble"
                         f"(group={c_g},q_hat={float(c_q) if np.isfinite(c_q) else float('nan'):.2f},"
@@ -390,7 +393,7 @@ class UncertaintyQuantifier:
                         rul_upper_raw=rul_upper_raw,
                         horizon=horizon,
                     )
-                    risk = self.categorize_risk(fail_prob)
+                    risk = self.categorize_risk_by_rul(rul_ensemble)
                     uncertainty_method = (
                         "quantile_regression_bootstrap_weighted_ensemble"
                         f"(stat={w.get('stat',0.0):.2f},ml={w.get('ml',0.0):.2f},dl={w.get('dl',0.0):.2f})"
@@ -404,7 +407,7 @@ class UncertaintyQuantifier:
                     rul_upper_raw=rul_upper_raw,
                     horizon=horizon,
                 )
-                risk = self.categorize_risk(fail_prob)
+                risk = self.categorize_risk_by_rul(rul_ensemble)
                 uncertainty_method = (
                     "quantile_regression_bootstrap_weighted_ensemble"
                     f"(stat={w.get('stat',0.0):.2f},ml={w.get('ml',0.0):.2f},dl={w.get('dl',0.0):.2f})"
@@ -503,16 +506,44 @@ def run_uncertainty_analysis(
         calibrator=calibrator,
     )
     estimates = uq.predict_with_uncertainty(df, horizon=horizon)
-    risk_summary = uq.compute_risk_summary(estimates, df["RUL"].values)
+
+    # Full-dataset summary (train + cal + test rows combined).
+    all_summary = uq.compute_risk_summary(estimates, df["RUL"].values)
+
+    # Test-set-only summary: coverage here is the honest held-out estimate.
+    test_mask = (
+        df["in_test_set"].values.astype(bool)
+        if "in_test_set" in df.columns
+        else np.zeros(len(estimates), dtype=bool)
+    )
+    if test_mask.any():
+        test_estimates = [e for e, m in zip(estimates, test_mask) if m]
+        test_actuals = df["RUL"].values[test_mask]
+        test_summary = uq.compute_risk_summary(test_estimates, test_actuals)
+        logger.info(
+            f"  Test-set coverage (n={int(test_mask.sum())}): "
+            f"{test_summary.coverage_90 * 100:.1f}%  "
+            f"mean_width={test_summary.mean_uncertainty_width:.1f} cycles"
+        )
+    else:
+        test_summary = all_summary
 
     (output_dir / "uncertainty_estimates.json").write_text(
         json.dumps([e.to_dict() for e in estimates], indent=2),
         encoding="utf-8",
     )
 
+    metrics_dict = all_summary.to_dict()
+    metrics_dict["_note"] = (
+        "coverage_90_percent and calibration_score are computed over all rows "
+        "(train + calibration + test). See test_set_metrics for the held-out "
+        "test-set-only estimates, which are the correct values to report."
+    )
+    metrics_dict["test_set_metrics"] = test_summary.to_dict()
+
     (output_dir / "uncertainty_metrics.json").write_text(
-        json.dumps(risk_summary.to_dict(), indent=2),
+        json.dumps(metrics_dict, indent=2),
         encoding="utf-8",
     )
 
-    return estimates, risk_summary
+    return estimates, test_summary

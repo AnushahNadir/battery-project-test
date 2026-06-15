@@ -574,10 +574,18 @@ class ConformalCalibrator:
         covered = valid & (y_true >= lo) & (y_true <= hi)
         overall = float(covered[valid].mean()) if valid.any() else float("nan")
 
+        widths = hi - lo
+        valid_widths = widths[valid & np.isfinite(widths)]
+        y_range = float(np.nanmax(y_true) - np.nanmin(y_true)) if len(y_true) > 1 else 1.0
+        mean_width_all = float(np.mean(valid_widths)) if len(valid_widths) else float("nan")
+        pinaw_all = mean_width_all / y_range if y_range > 0 and np.isfinite(mean_width_all) else float("nan")
+
         report: dict = {
             "target_coverage": float(self.coverage),
             "overall_empirical_coverage": round(overall, 4) if np.isfinite(overall) else None,
             "n_test_rows": int(len(test_df)),
+            "mean_interval_width": round(mean_width_all, 2) if np.isfinite(mean_width_all) else None,
+            "pinaw": round(pinaw_all, 4) if np.isfinite(pinaw_all) else None,
             "per_group": {},
         }
 
@@ -585,10 +593,15 @@ class ConformalCalibrator:
         work["_valid"] = valid
         work["_covered"] = covered
         work["_group"] = work["battery_id"].astype(str).map(_get_temp_group)
+        work["_width"] = widths
+        rul_col_used = self.rul_col if self.rul_col in work.columns else "RUL"
 
         logger.info(f"\n[Conformal coverage report  target={self.coverage:.0%}]")
         if report["overall_empirical_coverage"] is not None:
-            logger.info(f"  Overall: {report['overall_empirical_coverage']:.1%}")
+            logger.info(
+                f"  Overall: {report['overall_empirical_coverage']:.1%}  "
+                f"mean_width={mean_width_all:.1f}  PINAW={pinaw_all:.3f}"
+            )
         for grp in TEMP_GROUPS:
             gdf = work[work["_group"] == grp]
             if gdf.empty:
@@ -599,18 +612,30 @@ class ConformalCalibrator:
             q_hat = float(gc.q_hat) if gc is not None else float(self._global_q_hat)
             strategy = gc.strategy if gc is not None else "fallback"
             gap = emp - float(self.coverage) if np.isfinite(emp) else float("nan")
+            grp_widths = gdf.loc[gvalid, "_width"].values
+            grp_widths = grp_widths[np.isfinite(grp_widths)]
+            grp_mean_width = float(np.mean(grp_widths)) if len(grp_widths) else float("nan")
+            if rul_col_used in gdf.columns:
+                grp_y = pd.to_numeric(gdf[rul_col_used], errors="coerce").dropna()
+                grp_range = float(grp_y.max() - grp_y.min()) if len(grp_y) > 1 else 1.0
+            else:
+                grp_range = y_range
+            grp_pinaw = grp_mean_width / grp_range if grp_range > 0 and np.isfinite(grp_mean_width) else float("nan")
             report["per_group"][grp] = {
                 "n_rows": int(len(gdf)),
                 "empirical_coverage": round(emp, 4) if np.isfinite(emp) else None,
                 "q_hat": round(q_hat, 2),
                 "strategy": strategy,
                 "gap_vs_target": round(gap, 4) if np.isfinite(gap) else None,
+                "mean_interval_width": round(grp_mean_width, 2) if np.isfinite(grp_mean_width) else None,
+                "pinaw": round(grp_pinaw, 4) if np.isfinite(grp_pinaw) else None,
             }
             if np.isfinite(emp):
                 flag = "OK" if emp >= self.coverage else "UNDER-COVERED"
                 logger.info(
                     f"  {grp:>5} [{strategy}]: {emp:.1%}  "
-                    f"(gap={gap:+.1%}  q_hat={q_hat:.1f}  n={len(gdf)})  {flag}"
+                    f"(gap={gap:+.1%}  q_hat={q_hat:.1f}  width={grp_mean_width:.1f}  "
+                    f"PINAW={grp_pinaw:.3f}  n={len(gdf)})  {flag}"
                 )
             else:
                 logger.info(f"  {grp:>5} [{strategy}]: empirical=NA  n={len(gdf)}")
