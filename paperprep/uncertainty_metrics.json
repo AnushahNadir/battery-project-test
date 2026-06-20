@@ -1,0 +1,12 @@
+{
+  "total_observations": 2790,
+  "risk_distribution": {
+    "LOW": 212,
+    "MEDIUM": 537,
+    "HIGH": 2041
+  },
+  "mean_rul_prediction": 16.97,
+  "mean_uncertainty_width": 60.62,
+  "coverage_90_percent": 96.3,
+  "calibration_score": 0.837
+}

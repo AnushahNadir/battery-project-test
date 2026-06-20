@@ -63,7 +63,7 @@ Ingests raw metadata CSV + per-cycle time-series CSVs. Flow:
 5. Merge into `data/processed/cycle_features_with_rul.csv` — the primary input for Stage 3+
 
 ### The `--alpha` parameter
-`--alpha` is the EOL capacity-fade fraction passed to `src/analysis/rul.py`. It sets `EOL_capacity = alpha × init_capacity` where `init_capacity` is each battery's **own measured first-cycle capacity** (not the nominal 2.0 Ah). At `--alpha 0.8`, EOL threshold varies per cell (range across 34 NASA PCoE cells: 0.81–1.53 Ah, mean 1.23 Ah). **This is not a quality or confidence threshold** — it controls when a battery is considered "dead" for RUL label generation. The gating quality thresholds (0.60 hard-reject, 0.85 RAG-trigger) are entirely separate and live in `configs/pipeline.yaml`.
+`--alpha` is the EOL capacity-fade fraction passed to `src/analysis/rul.py`. It sets `EOL_capacity = alpha × initial_capacity`. At `--alpha 0.8`, EOL thresholds range 0.81-1.53 Ah per cell (80% of each cell's measured initial capacity; NOT a fixed 1.6 Ah cutoff). **This is not a quality or confidence threshold** — it controls when a battery is considered "dead" for RUL label generation. The gating quality thresholds (0.60 hard-reject, 0.85 RAG-trigger) are entirely separate and live in `configs/pipeline.yaml`. Using `--alpha 0.8` with the default gating config means the dataset passes the hard-reject gate but sits between the two thresholds, so RAG assistance is triggered.
 
 ### Stage 3–6: Modeling (`src/modeling/run_full_pipeline.py`)
 Reads `cycle_features_with_rul.csv`. Batteries are split by temperature group (cold/hot/room) to prevent leakage. A subset of train batteries is held out as a conformal calibration set.
@@ -125,7 +125,7 @@ dashboard/app.py         ← reads all of the above
 ## Important constraints
 
 - **Battery-level train/test split** is mandatory. Never split by row/cycle — all cycles from one battery must stay in the same split to prevent leakage. This is enforced via `GroupKFold` in CV and explicit battery-list checks at pipeline start.
-- **EOL threshold**: End-of-life is defined as capacity falling below `alpha × init_capacity` where `init_capacity` is each cell's measured first-cycle capacity. With `--alpha 0.8`, the threshold is per-cell (confirmed range: 0.81–1.53 Ah across 34 cells; mean 1.23 Ah). It is **not** `0.80 × nominal_2.0_Ah = 1.6 Ah`. Changing alpha changes all RUL labels and requires rerunning both pipeline stages.
+- **EOL threshold**: End-of-life is defined as capacity falling below `alpha * per_cell_init_capacity`. At alpha=0.8, thresholds range 0.81-1.53 Ah (mean 1.23 Ah) across 34 cells. Changing alpha changes all RUL labels.
 - **Conformal calibration batteries** are carved out from the training set, not from test. The pipeline hard-exits if any overlap is detected between train/cal/test sets.
 - **DL backend**: `force_backend: auto` uses PyTorch TCN if available, otherwise falls back to a sequence-MLP silently. Set `force_backend: torch_tcn` or `keras` to force a specific backend.
 - **Flagged batteries** (`anomaly.flagged_battery_prefixes`): rows from these batteries with capacity below `capacity_floor_factor * median` are removed from training only — not from calibration or test.

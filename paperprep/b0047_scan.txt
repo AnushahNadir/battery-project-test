@@ -1,0 +1,4 @@
+Battery_Project_Report.docx -- clean
+Dashboard_Report.docx -- clean
+QA_Document.docx -- clean
+Streamlit_Output_Explained.docx -- clean

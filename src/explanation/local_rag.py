@@ -3,11 +3,13 @@ Local RAG system for battery degradation explanations.
 
 Retrieval : SentenceTransformer (all-MiniLM-L6-v2) + ChromaDB (persistent on disk)
             Sources: data/knowledge_base/*.txt  +  data/papers/*.pdf (and subfolders)
-Generation: Gemma 3-4B-it with 4-bit NF4 quantization (local weights, lazy load)
+Generation: Llama 3.1 8B Instruct with 4-bit NF4 quantization (local weights, lazy load)
+            Requires CUDA — raises RuntimeError at generation time if no GPU is found.
 
 Model weights live in:
-    models/gemma-3-4b-it/       ← LLM
-    models/all-MiniLM-L6-v2/    ← embeddings
+    models/llama-3.1-8b-instruct/   ← active LLM (meta-llama/Llama-3.1-8B-Instruct)
+    models/all-MiniLM-L6-v2/        ← embeddings (sentence-transformers/all-MiniLM-L6-v2)
+    models/gemma-3-4b-it/           ← alternative LLM (swap _LLM_BASE lines below to activate)
 PDFs go in:
     data/papers/                ← drop any PDF here and call reindex()
 

@@ -1,0 +1,406 @@
+{
+  "full": {
+    "features": [
+      "capacity",
+      "cycle_index",
+      "temp_mean",
+      "temp_max",
+      "v_mean",
+      "i_mean",
+      "i_min",
+      "energy_j",
+      "ah_est",
+      "duration_s"
+    ],
+    "n_features": 10,
+    "runs": [
+      {
+        "seed": 42,
+        "n_train": 2156,
+        "n_test": 638,
+        "xgb_rmse": 21.1838,
+        "xgb_mae": 11.8475,
+        "stat_rmse": 42.795,
+        "feature_cols": [
+          "capacity",
+          "cycle_index",
+          "temp_mean",
+          "temp_max",
+          "v_mean",
+          "i_mean",
+          "i_min",
+          "energy_j",
+          "ah_est",
+          "duration_s"
+        ],
+        "n_features": 10
+      },
+      {
+        "seed": 7,
+        "n_train": 2180,
+        "n_test": 614,
+        "xgb_rmse": 11.2109,
+        "xgb_mae": 5.5332,
+        "stat_rmse": 52.2884,
+        "feature_cols": [
+          "capacity",
+          "cycle_index",
+          "temp_mean",
+          "temp_max",
+          "v_mean",
+          "i_mean",
+          "i_min",
+          "energy_j",
+          "ah_est",
+          "duration_s"
+        ],
+        "n_features": 10
+      },
+      {
+        "seed": 11,
+        "n_train": 2299,
+        "n_test": 495,
+        "xgb_rmse": 13.5907,
+        "xgb_mae": 5.8665,
+        "stat_rmse": 56.1601,
+        "feature_cols": [
+          "capacity",
+          "cycle_index",
+          "temp_mean",
+          "temp_max",
+          "v_mean",
+          "i_mean",
+          "i_min",
+          "energy_j",
+          "ah_est",
+          "duration_s"
+        ],
+        "n_features": 10
+      },
+      {
+        "seed": 21,
+        "n_train": 2285,
+        "n_test": 509,
+        "xgb_rmse": 29.3313,
+        "xgb_mae": 15.7184,
+        "stat_rmse": 35.5148,
+        "feature_cols": [
+          "capacity",
+          "cycle_index",
+          "temp_mean",
+          "temp_max",
+          "v_mean",
+          "i_mean",
+          "i_min",
+          "energy_j",
+          "ah_est",
+          "duration_s"
+        ],
+        "n_features": 10
+      },
+      {
+        "seed": 99,
+        "n_train": 2185,
+        "n_test": 609,
+        "xgb_rmse": 34.7183,
+        "xgb_mae": 22.4306,
+        "stat_rmse": 42.8808,
+        "feature_cols": [
+          "capacity",
+          "cycle_index",
+          "temp_mean",
+          "temp_max",
+          "v_mean",
+          "i_mean",
+          "i_min",
+          "energy_j",
+          "ah_est",
+          "duration_s"
+        ],
+        "n_features": 10
+      }
+    ],
+    "summary": {
+      "xgb_rmse": {
+        "mean": 22.007,
+        "std": 8.981,
+        "min": 11.2109,
+        "max": 34.7183,
+        "n": 5
+      },
+      "stat_rmse": {
+        "mean": 45.9278,
+        "std": 7.3849,
+        "min": 35.5148,
+        "max": 56.1601,
+        "n": 5
+      }
+    }
+  },
+  "no_cycle_index": {
+    "features": [
+      "capacity",
+      "temp_mean",
+      "temp_max",
+      "v_mean",
+      "i_mean",
+      "i_min",
+      "energy_j",
+      "ah_est",
+      "duration_s"
+    ],
+    "n_features": 9,
+    "runs": [
+      {
+        "seed": 42,
+        "n_train": 2156,
+        "n_test": 638,
+        "xgb_rmse": 41.4565,
+        "xgb_mae": 29.7827,
+        "stat_rmse": 42.795,
+        "feature_cols": [
+          "capacity",
+          "temp_mean",
+          "temp_max",
+          "v_mean",
+          "i_mean",
+          "i_min",
+          "energy_j",
+          "ah_est",
+          "duration_s"
+        ],
+        "n_features": 9
+      },
+      {
+        "seed": 7,
+        "n_train": 2180,
+        "n_test": 614,
+        "xgb_rmse": 17.1282,
+        "xgb_mae": 9.9653,
+        "stat_rmse": 52.2884,
+        "feature_cols": [
+          "capacity",
+          "temp_mean",
+          "temp_max",
+          "v_mean",
+          "i_mean",
+          "i_min",
+          "energy_j",
+          "ah_est",
+          "duration_s"
+        ],
+        "n_features": 9
+      },
+      {
+        "seed": 11,
+        "n_train": 2299,
+        "n_test": 495,
+        "xgb_rmse": 12.92,
+        "xgb_mae": 7.4563,
+        "stat_rmse": 56.1601,
+        "feature_cols": [
+          "capacity",
+          "temp_mean",
+          "temp_max",
+          "v_mean",
+          "i_mean",
+          "i_min",
+          "energy_j",
+          "ah_est",
+          "duration_s"
+        ],
+        "n_features": 9
+      },
+      {
+        "seed": 21,
+        "n_train": 2285,
+        "n_test": 509,
+        "xgb_rmse": 31.4776,
+        "xgb_mae": 18.3019,
+        "stat_rmse": 35.5148,
+        "feature_cols": [
+          "capacity",
+          "temp_mean",
+          "temp_max",
+          "v_mean",
+          "i_mean",
+          "i_min",
+          "energy_j",
+          "ah_est",
+          "duration_s"
+        ],
+        "n_features": 9
+      },
+      {
+        "seed": 99,
+        "n_train": 2185,
+        "n_test": 609,
+        "xgb_rmse": 42.5562,
+        "xgb_mae": 32.6233,
+        "stat_rmse": 42.8808,
+        "feature_cols": [
+          "capacity",
+          "temp_mean",
+          "temp_max",
+          "v_mean",
+          "i_mean",
+          "i_min",
+          "energy_j",
+          "ah_est",
+          "duration_s"
+        ],
+        "n_features": 9
+      }
+    ],
+    "summary": {
+      "xgb_rmse": {
+        "mean": 29.1077,
+        "std": 12.2026,
+        "min": 12.92,
+        "max": 42.5562,
+        "n": 5
+      },
+      "stat_rmse": {
+        "mean": 45.9278,
+        "std": 7.3849,
+        "min": 35.5148,
+        "max": 56.1601,
+        "n": 5
+      }
+    },
+    "delta_vs_full_xgb_rmse": 7.1007
+  },
+  "no_capacity": {
+    "features": [
+      "cycle_index",
+      "temp_mean",
+      "temp_max",
+      "v_mean",
+      "i_mean",
+      "i_min",
+      "energy_j",
+      "ah_est",
+      "duration_s"
+    ],
+    "n_features": 9,
+    "runs": [
+      {
+        "seed": 42,
+        "n_train": 2156,
+        "n_test": 638,
+        "xgb_rmse": 22.3701,
+        "xgb_mae": 13.6886,
+        "stat_rmse": 42.795,
+        "feature_cols": [
+          "cycle_index",
+          "temp_mean",
+          "temp_max",
+          "v_mean",
+          "i_mean",
+          "i_min",
+          "energy_j",
+          "ah_est",
+          "duration_s"
+        ],
+        "n_features": 9
+      },
+      {
+        "seed": 7,
+        "n_train": 2180,
+        "n_test": 614,
+        "xgb_rmse": 10.5441,
+        "xgb_mae": 5.5784,
+        "stat_rmse": 52.2884,
+        "feature_cols": [
+          "cycle_index",
+          "temp_mean",
+          "temp_max",
+          "v_mean",
+          "i_mean",
+          "i_min",
+          "energy_j",
+          "ah_est",
+          "duration_s"
+        ],
+        "n_features": 9
+      },
+      {
+        "seed": 11,
+        "n_train": 2299,
+        "n_test": 495,
+        "xgb_rmse": 13.9718,
+        "xgb_mae": 6.5573,
+        "stat_rmse": 56.1601,
+        "feature_cols": [
+          "cycle_index",
+          "temp_mean",
+          "temp_max",
+          "v_mean",
+          "i_mean",
+          "i_min",
+          "energy_j",
+          "ah_est",
+          "duration_s"
+        ],
+        "n_features": 9
+      },
+      {
+        "seed": 21,
+        "n_train": 2285,
+        "n_test": 509,
+        "xgb_rmse": 29.8256,
+        "xgb_mae": 16.4328,
+        "stat_rmse": 35.5148,
+        "feature_cols": [
+          "cycle_index",
+          "temp_mean",
+          "temp_max",
+          "v_mean",
+          "i_mean",
+          "i_min",
+          "energy_j",
+          "ah_est",
+          "duration_s"
+        ],
+        "n_features": 9
+      },
+      {
+        "seed": 99,
+        "n_train": 2185,
+        "n_test": 609,
+        "xgb_rmse": 34.7829,
+        "xgb_mae": 22.4474,
+        "stat_rmse": 42.8808,
+        "feature_cols": [
+          "cycle_index",
+          "temp_mean",
+          "temp_max",
+          "v_mean",
+          "i_mean",
+          "i_min",
+          "energy_j",
+          "ah_est",
+          "duration_s"
+        ],
+        "n_features": 9
+      }
+    ],
+    "summary": {
+      "xgb_rmse": {
+        "mean": 22.2989,
+        "std": 9.1654,
+        "min": 10.5441,
+        "max": 34.7829,
+        "n": 5
+      },
+      "stat_rmse": {
+        "mean": 45.9278,
+        "std": 7.3849,
+        "min": 35.5148,
+        "max": 56.1601,
+        "n": 5
+      }
+    },
+    "delta_vs_full_xgb_rmse": 0.2919
+  }
+}

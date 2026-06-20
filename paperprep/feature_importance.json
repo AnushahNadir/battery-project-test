@@ -1,0 +1,62 @@
+[
+  {
+    "feature": "temp_mean",
+    "importance": 0.2758,
+    "direction": "negative",
+    "rank": 1
+  },
+  {
+    "feature": "i_mean",
+    "importance": 0.1958,
+    "direction": "negative",
+    "rank": 2
+  },
+  {
+    "feature": "cycle_index",
+    "importance": 0.1206,
+    "direction": "negative",
+    "rank": 3
+  },
+  {
+    "feature": "temp_max",
+    "importance": 0.1069,
+    "direction": "negative",
+    "rank": 4
+  },
+  {
+    "feature": "duration_s",
+    "importance": 0.0977,
+    "direction": "negative",
+    "rank": 5
+  },
+  {
+    "feature": "ah_est",
+    "importance": 0.0577,
+    "direction": "negative",
+    "rank": 6
+  },
+  {
+    "feature": "capacity",
+    "importance": 0.0478,
+    "direction": "negative",
+    "rank": 7
+  },
+  {
+    "feature": "i_min",
+    "importance": 0.0362,
+    "direction": "negative",
+    "rank": 8
+  },
+  {
+    "feature": "energy_j",
+    "importance": 0.031,
+    "direction": "negative",
+    "rank": 9
+  },
+  {
+    "feature": "v_mean",
+    "importance": 0.0306,
+    "direction": "negative",
+    "rank": 10
+  }
+]

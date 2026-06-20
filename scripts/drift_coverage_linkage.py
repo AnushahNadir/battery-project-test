@@ -166,8 +166,9 @@ def main() -> None:
             "psi_by_feature": psi_by_feature,
         }
         records.append(rec)
+        rmse_str = f"{rmse:.2f}" if rmse is not None else "N/A"
         logger.info(
-            f"  {bat} ({temp_grp}): coverage={coverage}, rmse={rmse:.2f if rmse else 'N/A'}, "
+            f"  {bat} ({temp_grp}): coverage={coverage}, rmse={rmse_str}, "
             f"psi_max={psi_max}, psi_mean={psi_mean}"
         )
 

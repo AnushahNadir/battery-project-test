@@ -1,0 +1,118 @@
+{
+  "overall_status": "RED",
+  "n_rows": 638,
+  "n_batteries": 6,
+  "psi_thresholds": {
+    "amber": 0.1,
+    "red": 0.2
+  },
+  "alerts": [
+    "temp_mean PSI=1.010 exceeds red threshold 0.20",
+    "temp_max PSI=2.462 exceeds red threshold 0.20",
+    "v_mean PSI=2.077 exceeds red threshold 0.20",
+    "i_mean PSI=2.573 exceeds red threshold 0.20",
+    "duration_s PSI=1.814 exceeds red threshold 0.20"
+  ],
+  "features": [
+    {
+      "feature": "temp_mean",
+      "psi": 1.0104,
+      "status": "RED",
+      "n_actual": 638,
+      "train_mean": 26.9118,
+      "actual_mean": 28.6011,
+      "mean_shift": 1.6893,
+      "alert": "temp_mean PSI=1.010 exceeds red threshold 0.20"
+    },
+    {
+      "feature": "temp_max",
+      "psi": 2.4619,
+      "status": "RED",
+      "n_actual": 638,
+      "train_mean": 34.6151,
+      "actual_mean": 36.4204,
+      "mean_shift": 1.8053,
+      "alert": "temp_max PSI=2.462 exceeds red threshold 0.20"
+    },
+    {
+      "feature": "v_min",
+      "psi": 0.0,
+      "status": "GREEN",
+      "n_actual": 638,
+      "train_mean": 0.0,
+      "actual_mean": 0.0,
+      "mean_shift": -0.0,
+      "alert": null
+    },
+    {
+      "feature": "v_mean",
+      "psi": 2.0766,
+      "status": "RED",
+      "n_actual": 638,
+      "train_mean": 1.9143,
+      "actual_mean": 1.3648,
+      "mean_shift": -0.5495,
+      "alert": "v_mean PSI=2.077 exceeds red threshold 0.20"
+    },
+    {
+      "feature": "i_mean",
+      "psi": 2.5729,
+      "status": "RED",
+      "n_actual": 638,
+      "train_mean": 1.6099,
+      "actual_mean": 1.6535,
+      "mean_shift": 0.0436,
+      "alert": "i_mean PSI=2.573 exceeds red threshold 0.20"
+    },
+    {
+      "feature": "i_min",
+      "psi": 0.0037,
+      "status": "GREEN",
+      "n_actual": 638,
+      "train_mean": -0.1043,
+      "actual_mean": 0.0004,
+      "mean_shift": 0.1046,
+      "alert": null
+    },
+    {
+      "feature": "duration_s",
+      "psi": 1.8144,
+      "status": "RED",
+      "n_actual": 638,
+      "train_mean": 3175.0782,
+      "actual_mean": 2826.962,
+      "mean_shift": -348.1162,
+      "alert": "duration_s PSI=1.814 exceeds red threshold 0.20"
+    },
+    {
+      "feature": "capacity",
+      "psi": 0.9143,
+      "status": "RED",
+      "n_actual": 617,
+      "train_mean": 1.3377,
+      "actual_mean": 1.31,
+      "mean_shift": -0.0277,
+      "alert": null
+    },
+    {
+      "feature": "ah_est",
+      "psi": 0.8758,
+      "status": "RED",
+      "n_actual": 638,
+      "train_mean": 1.2258,
+      "actual_mean": 1.3076,
+      "mean_shift": 0.0819,
+      "alert": null
+    },
+    {
+      "feature": "energy_j",
+      "psi": 0.8735,
+      "status": "RED",
+      "n_actual": 638,
+      "train_mean": 9287.7976,
+      "actual_mean": 8950.875,
+      "mean_shift": -336.9226,
+      "alert": null
+    }
+  ]
+}
